@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- firmware.json 里的 bin 地址可能是 http；优先走 https，此处仅作回退。 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ota.jinsc.top</domain>
+    </domain-config>
+</network-security-config>

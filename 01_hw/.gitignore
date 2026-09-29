@@ -1,0 +1,8 @@
+# Altium 打开工程后自动生成的产物，不该入库。
+__Previews/
+History/
+Project Outputs/
+SessionLogs/
+*.SchDocPreview
+*.PcbDocPreview
+*.PrjPcbStructure

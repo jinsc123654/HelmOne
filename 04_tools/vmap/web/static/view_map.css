@@ -1,0 +1,49 @@
+#region-list {
+  max-height: 280px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.6;
+}
+#region-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: #e2e8f0;
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin: 0 0 2px;
+}
+#region-list button:hover,
+#region-list button.active {
+  background: #334155;
+}
+#sel-body { font-size: 12px; color: #cbd5e1; line-height: 1.7; }
+#sel-body code { color: #93c5fd; }
+.leaflet-container { background: #eae6de; }
+.vmap-grid-label {
+  background: transparent;
+  border: none;
+  color: #c2410c;
+  font-weight: 700;
+  font-size: 11px;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+  box-shadow: none;
+}
+.vmap-grid-label::before { display: none; }
+.switch { margin: 8px 0; }
+#src-dir { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#goto-msg { margin-top: 6px; min-height: 1.2em; }
+.ele-bar {
+  height: 10px; border-radius: 4px;
+  background: linear-gradient(90deg, #2166ac, #67a9cf, #d1e5f0, #fddbc7, #ef8a62, #b2182b);
+}
+.ele-scale { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.vmap-elev-canvas,
+.vmap-graph-canvas,
+.vmap-vec-canvas {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+}

@@ -1,0 +1,4 @@
+# Extra dep for the vmap web generator (in addition to docs/osm/requirements.txt:
+# requests, osmium, shapely). Install into the shared docs/osm/.venv:
+#   ../.venv/bin/pip install -r requirements.txt
+flask>=3.0

@@ -1,0 +1,4 @@
+[submodule "02_sw/vendor/vela_sifli"]
+	path = 02_sw/vendor/vela_sifli
+	url = https://gitee.com/jinsc123654/vela_sifli.git
+	branch = retire-eval

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>vmap 预览 · 解析设备 map/</title>
+  <link rel="stylesheet" href="/static/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/view_map.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="panel">
+      <h1>vmap 预览</h1>
+      <p class="sub">按经纬度分桶 lon*/lat*，内部是 3 km 小图 x*_y*.vpk</p>
+
+      <div class="card">
+        <div class="btn-row">
+          <button id="open-btn" class="ghost">打开 map 文件夹</button>
+          <button id="reload-btn" class="ghost">加载服务端</button>
+        </div>
+        <input id="dir-input" type="file" webkitdirectory directory multiple hidden />
+        <div class="row"><span class="k">目录</span>
+          <span class="v" id="src-dir">—</span></div>
+        <div class="row"><span class="k">格式</span>
+          <span class="v" id="src-fmt">—</span></div>
+        <div class="hint">默认视野 = 加载到的包（内置演示集是北京那 64 块，会自动铺满）；
+          大包（全国）请用坐标跳转，别缩到全国视野。</div>
+      </div>
+
+      <div class="card">
+        <h3>跳到坐标</h3>
+        <div class="field">
+          <label>纬度, 经度 <span class="hint">（也可经度在前，绝对值大于 90 的当作经度）</span></label>
+          <input id="goto-coord" type="text" placeholder="39.885010, 116.396890"
+                 value="39.885010, 116.396890" autocomplete="off" />
+        </div>
+        <div class="btn-row">
+          <button id="goto-btn" class="ghost">跳转</button>
+        </div>
+        <div class="hint" id="goto-msg"></div>
+      </div>
+
+      <div class="card" id="stats-card">
+        <div class="row"><span class="k">区域</span><span class="v" id="st-regions">—</span></div>
+        <div class="row"><span class="k">瓦片</span><span class="v" id="st-tiles">—</span></div>
+        <div class="row"><span class="k">导航路网</span><span class="v" id="st-graph">—</span></div>
+        <div class="row"><span class="k">路网海拔</span><span class="v" id="st-elev">—</span></div>
+        <div class="row"><span class="k">体积</span><span class="v" id="st-bytes">—</span></div>
+        <div class="row"><span class="k">小区色块</span><span class="v" id="st-land">—</span></div>
+        <div class="row"><span class="k">路名 / 地名</span><span class="v" id="st-names">—</span></div>
+      </div>
+
+      <div class="card">
+        <label class="switch"><input id="tog-osm" type="checkbox"> OSM 底图对照</label>
+        <label class="switch"><input id="tog-vec" type="checkbox" checked> 矢量瓦片</label>
+        <label class="switch"><input id="tog-land" type="checkbox" checked> 小区/用地色块</label>
+        <label class="switch"><input id="tog-grid" type="checkbox"> 区域网格</label>
+        <label class="switch"><input id="tog-lbl" type="checkbox" checked> 标签（路/水/公园）</label>
+        <label class="switch"><input id="tog-graph" type="checkbox"> 导航路网（点+边）</label>
+        <label class="switch"><input id="tog-elev" type="checkbox"> 路网海拔着色</label>
+        <label class="switch"><input id="tog-port" type="checkbox"> 跨区接点</label>
+        <div id="ele-legend">
+          <div class="ele-bar"></div>
+          <div class="ele-scale"><span id="ele-min">低</span><span id="ele-max">高</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="sel-card">
+        <h3>选中区域</h3>
+        <div id="sel-body">点击橙色格子查看 lon*/lat*/x*_y*.vpk</div>
+      </div>
+
+      <div class="card">
+        <h3>区域列表</h3>
+        <div id="region-list">尚未加载</div>
+      </div>
+    </aside>
+    <main id="map"></main>
+  </div>
+  <script src="/static/leaflet/leaflet.js"></script>
+  <script src="/static/view_map.js?v=20260930a"></script>
+</body>
+</html>

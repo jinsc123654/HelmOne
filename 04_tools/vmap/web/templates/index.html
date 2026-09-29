@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>vmap 生成器 · bicycle 码表</title>
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div id="app">
+    <aside id="panel">
+      <h1>vmap 生成器</h1>
+      <p class="sub">框选区域 → 离线切片 → 打包成设备可用地图</p>
+
+      <div class="card" id="src-card">
+        <div class="row"><span class="k">源数据</span>
+          <span class="v" id="src-status">加载中…</span></div>
+        <div class="row"><span class="k">全国网格</span>
+          <span class="v" id="grid-status">—</span></div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>区域名称（输出目录）</label>
+          <input id="name" type="text" placeholder="例如 nanjing_core" />
+        </div>
+
+        <label class="section-label">框选范围 (WGS84)</label>
+        <div class="bbox-grid">
+          <label>W<input id="west" type="number" step="0.0001"></label>
+          <label>S<input id="south" type="number" step="0.0001"></label>
+          <label>E<input id="east" type="number" step="0.0001"></label>
+          <label>N<input id="north" type="number" step="0.0001"></label>
+        </div>
+        <div class="btn-row">
+          <button id="draw-btn" class="ghost">✏️ 在地图上框选</button>
+          <button id="clear-btn" class="ghost">清除</button>
+        </div>
+
+        <div class="field">
+          <label>瓦片层级 (zoom)
+            <span class="hint">（可多选/单选；设备底图用 z14）</span></label>
+          <div class="chips" id="zoom-chips">
+            <label><input type="checkbox" value="13"> z13</label>
+            <label><input type="checkbox" value="14" checked> z14</label>
+            <label><input type="checkbox" value="15"> z15</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>区域网格大小 region_km
+            <span class="hint">（越小分片文件越小）</span></label>
+          <input id="region-km" type="number" step="1" min="3" value="6" />
+        </div>
+
+        <label class="switch">
+          <input id="build-graph" type="checkbox" checked>
+          生成路网导航图 (graph.vgrf)
+        </label>
+
+        <div class="est" id="est">—</div>
+
+        <button id="gen-btn" class="primary">🚀 生成 vmap</button>
+      </div>
+
+      <div class="card" id="log-card" hidden>
+        <div class="row"><span class="k">状态</span>
+          <span class="v" id="job-status">—</span></div>
+        <pre id="log"></pre>
+      </div>
+
+      <div class="card" id="result-card" hidden>
+        <h3>生成结果</h3>
+        <div id="result-body"></div>
+      </div>
+
+      <div class="card">
+        <h3>已有输出</h3>
+        <div id="outputs">—</div>
+      </div>
+    </aside>
+
+    <main id="map"></main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
