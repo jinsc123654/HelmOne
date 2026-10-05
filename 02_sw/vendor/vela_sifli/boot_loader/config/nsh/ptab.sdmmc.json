@@ -1,0 +1,232 @@
+[
+    {
+        "mem": "sd",
+        "base": "0x62000000",
+        "regions": [
+            {
+                "offset": "0x00000000",
+                "max_size": "0x00001000",
+                "tags": [
+                    "MBR"
+                ]
+            },
+            {
+                "offset": "0x00001000",
+                "max_size": "0x00010000",
+                "tags": [
+                    "FLASH_TABLE"
+                ],
+                "img": "ftab",
+                "exec": "ftab",
+                "custom": {
+                    "AUTO_FLASH_MAC_ADDRESS": 1644167168
+                }
+            },
+            {
+                "offset": "0x00011000",
+                "max_size": "0x00028000",
+                "tags": [],
+                "ftab": {
+                    "name": "bootloader",
+                    "address": [
+                        "base"
+                    ]
+                },
+                "img": "bootloader",
+                "comment": "160 KiB slot (128+32). ftab copy length follows max_size into SRAM FLASH_BOOT_LOADER @ 0x20020000 (same length). BOOTLOADER_RAM_DATA follows at 0x20048000 (200 KiB, to 0x2007A000; mailbox stays at 0x2007FC00). Extra 32 KiB taken from BOOT_RESERVE; main stays at 1 MiB."
+            },
+            {
+                "offset": "0x00039000",
+                "max_size": "0x000C7000",
+                "tags": [
+                    "BOOT_RESERVE"
+                ],
+                "comment": "Pad boot band to 1 MiB (MBR+ftab+160KiB code+this). Main stays at 1 MiB."
+            },
+            {
+                "offset": "0x00100000",
+                "max_size": "0x00400000",
+                "tags": [
+                    "HCPU_FLASH_CODE"
+                ],
+                "ftab": {
+                    "name": "main",
+                    "address": [
+                        "base"
+                    ]
+                },
+                "img": "main",
+                "comment": "Single product firmware slot. Later images live in KV LittleFS (/mnt/kv)."
+            },
+            {
+                "offset": "0x00500000",
+                "max_size": "0x00400000",
+                "tags": [
+                    "HCPU_FACTORY_CODE"
+                ],
+                "img": "factory",
+                "comment": "Factory firmware slot (MTP autostart). Loaded by 2SFBL 'factory' cmd; runs at PSRAM 0x10000000 like main (one at a time). No ftab entry: boot resolves via ptab_find_img."
+            },
+            {
+                "offset": "0x00900000",
+                "max_size": "0x08000000",
+                "tags": [
+                    "COREDUMP_REGION"
+                ],
+                "comment": "128 MiB raw crash dump. Not LittleFS. Placeholder; dump writer comes later. Shifted 4 MiB down for factory slot."
+            },
+            {
+                "offset": "0x08900000",
+                "max_size": "0x07700000",
+                "tags": [
+                    "LOW256_RESERVE"
+                ],
+                "comment": "Pad miscellaneous band to 256 MiB. Do not put user LFS here."
+            },
+            {
+                "offset": "0x10000000",
+                "max_size": "0x10000000",
+                "img": "kv_root",
+                "tags": [
+                    "KV_REGION"
+                ],
+                "comment": "VELA KVDB LittleFS at /mnt/kv: 256 MiB @ 256 MiB. Packed from mkfs/kv (kv_root.bin). Blank window still autoformats."
+            },
+            {
+                "offset": "0x20000000",
+                "max_size": "0x20000000",
+                "img": "fs_root",
+                "tags": [
+                    "FS_REGION"
+                ],
+                "comment": "User LittleFS at /mnt/lfs: 512 MiB fixed @ 512 MiB. Packed from mkfs/lfs. Daily MTP/BLE/GPX; not the map."
+            },
+            {
+                "offset": "0x40000000",
+                "max_size": "0x00000000",
+                "img": "fat_root",
+                "tags": [
+                    "FAT_REGION"
+                ],
+                "custom": {
+                    "SD_PACK_CARD_MIB": 14832
+                },
+                "comment": "FAT32 at /mnt/fat: starts at 1 GiB. max_size 0 = CSD remainder. Host pack matches a typical 16GB card CSD (14832 MiB → 13808 MiB FAT). A 15 GiB / 14 GiB seed will not mount (EINVAL) on these cards. Factory RW, product RO."
+            }
+        ]
+    },
+    {
+        "mem": "psram1",
+        "base": "0x60000000",
+        "regions": [
+            {
+                "offset": "0x00000000",
+                "max_size": "0x00400000",
+                "tags": [],
+                "ftab": {
+                    "name": "main",
+                    "address": [
+                        "xip"
+                    ]
+                }
+            },
+            {
+                "offset": "0x00400000",
+                "max_size": "0x00C00000",
+                "tags": [
+                    "PSRAM_DATA"
+                ]
+            }
+        ]
+    },
+    {
+        "mem": "psram1_cbus",
+        "base": "0x10000000",
+        "regions": [
+            {
+                "offset": "0x00000000",
+                "max_size": "0x00400000",
+                "tags": [
+                    "HCPU_PSRAM_CODE"
+                ],
+                "exec": "main"
+            }
+        ]
+    },
+    {
+        "mem": "hpsys_ram",
+        "base": "0x20000000",
+        "regions": [
+            {
+                "offset": "0x00000000",
+                "max_size": "0x0007FC00",
+                "tags": [
+                    "HCPU_RAM_DATA"
+                ]
+            },
+            {
+                "offset": "0x00020000",
+                "max_size": "0x00028000",
+                "ftab": {
+                    "name": "bootloader",
+                    "address": [
+                        "xip"
+                    ]
+                },
+                "tags": [
+                    "FLASH_BOOT_LOADER"
+                ],
+                "exec": "bootloader"
+            },
+            {
+                "offset": "0x00048000",
+                "max_size": "0x00032000",
+                "tags": [
+                    "BOOTLOADER_RAM_DATA"
+                ],
+                "comment": "200 KiB data RAM after 160 KiB boot code. Ends 0x2007A000; HPSYS_MBOX remains at 0x2007FC00."
+            },
+            {
+                "offset": "0x0007FC00",
+                "max_size": "0x00000000",
+                "tags": [
+                    "HCPU_RO_DATA"
+                ]
+            },
+            {
+                "offset": "0x0007FC00",
+                "max_size": "0x00000400",
+                "tags": [
+                    "HPSYS_MBOX"
+                ]
+            },
+            {
+                "offset": "0x0007FC00",
+                "max_size": "0x00000200",
+                "tags": [
+                    "HCPU2LCPU_MB_CH2_BUF"
+                ]
+            },
+            {
+                "offset": "0x0007FE00",
+                "max_size": "0x00000200",
+                "tags": [
+                    "HCPU2LCPU_MB_CH1_BUF"
+                ]
+            }
+        ]
+    },
+    {
+        "mem": "lpsys_ram",
+        "base": "0x20400000",
+        "regions": [
+            {
+                "offset": "0x00000000",
+                "max_size": "0x00006000",
+                "tags": [
+                    "LPSYS_RAM"
+                ]
+            }
+        ]
+    }
+]

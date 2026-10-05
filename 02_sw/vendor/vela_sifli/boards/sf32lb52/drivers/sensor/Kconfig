@@ -1,0 +1,93 @@
+#
+# Board-level BMP388 barometer (I2C1 on PA43/PA44)
+#
+
+comment "Enable Device Drivers -> Sensor Device Support (CONFIG_SENSORS) first"
+	depends on !SENSORS && I2C && I2C_DRIVER
+
+config BOARD_BMP388
+	bool "Bosch BMP388 barometer (board I2C)"
+	default n
+	depends on SENSORS && I2C && I2C_DRIVER
+	---help---
+		Enable BMP388 driver on the board sensor I2C bus (I2C1 /dev/i2c0).
+		Registers /dev/uorb/sensor_baro0 via the NuttX sensor framework.
+
+if BOARD_BMP388
+
+config BOARD_BMP388_I2C_ADDR
+	hex "BMP388 I2C 7-bit address"
+	default 0x76
+	---help---
+		0x76 when SDO is tied to GND; 0x77 when SDO is tied to VDDIO.
+
+config BOARD_BMP388_I2C_FREQUENCY
+	int "BMP388 I2C bus frequency"
+	default 400000
+
+endif # BOARD_BMP388
+
+config BOARD_MMC5983MA
+	bool "Memsic MMC5983MA magnetometer (board I2C)"
+	default n
+	depends on SENSORS && I2C && I2C_DRIVER
+	---help---
+		Enable MMC5983MA driver on the board sensor I2C bus (I2C1 /dev/i2c0).
+		Registers /dev/uorb/sensor_mag0 via the NuttX sensor framework.
+
+if BOARD_MMC5983MA
+
+config BOARD_MMC5983MA_I2C_ADDR
+	hex "MMC5983MA I2C 7-bit address"
+	default 0x30
+
+config BOARD_MMC5983MA_I2C_FREQUENCY
+	int "MMC5983MA I2C bus frequency"
+	default 400000
+
+endif # BOARD_MMC5983MA
+
+config BOARD_BMI270
+	bool "Bosch BMI270 IMU (SF32LB52 board driver)"
+	default n
+	depends on SENSORS && I2C && I2C_DRIVER
+	---help---
+		Board-local BMI270 driver (drivers/sensor/sf32lb52_bmi270/).
+		Registers /dev/uorb/sensor_accel0 and sensor_gyro0 on /dev/i2c0.
+
+if BOARD_BMI270
+
+config BOARD_BMI270_I2C_ADDR
+	hex "BMI270 I2C 7-bit address"
+	default 0x68
+	---help---
+		0x68 when SDO is tied to GND; 0x69 when SDO is tied to VDDIO.
+
+config BOARD_BMI270_I2C_FREQUENCY
+	int "BMI270 I2C bus frequency"
+	default 400000
+
+config BOARD_BMI270_POLL
+	bool "BMI270 poll mode (kernel thread)"
+	default n
+
+if BOARD_BMI270_POLL
+
+config BOARD_BMI270_POLL_INTERVAL
+	int "BMI270 poll interval (microseconds)"
+	default 100000
+
+config BOARD_BMI270_THREAD_STACKSIZE
+	int "BMI270 poll thread stack size"
+	default 2048
+
+endif # BOARD_BMI270_POLL
+
+config BOARD_BMI270_LOAD_FROM_HEAP
+	bool "Load BMI270 config file from heap"
+	default n
+	---help---
+		Copy the 8 KiB ASIC configuration blob to heap before upload.
+		Leave disabled to stream from flash (.rodata).
+
+endif # BOARD_BMI270

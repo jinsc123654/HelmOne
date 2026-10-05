@@ -1,0 +1,114 @@
+diff --git a/service/stacks/zephyr/hci_h4.c b/service/stacks/zephyr/hci_h4.c
+index 580de33d..55977b0e 100644
+--- a/service/stacks/zephyr/hci_h4.c
++++ b/service/stacks/zephyr/hci_h4.c
+@@ -16,6 +16,7 @@
+ 
+ #include <fcntl.h>
+ #include <stdio.h>
++#include <syslog.h>
+ #include <stdlib.h>
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+@@ -73,6 +74,7 @@ static const struct device* bt_dev;
+ static service_poll_t* hci_handle;
+ 
+ static void hci_remove_recv(void* data);
++static void hci_poll_recv(service_poll_t* poll, int revent, void* userdata);
+ 
+ static void h4_data_dump(const char* tag, uint8_t type, uint8_t* data, uint32_t len)
+ {
+@@ -218,6 +220,68 @@ static int32_t hci_packet_complete(const uint8_t* buf, uint16_t buf_len)
+     return (int32_t)header_len + payload_len;
+ }
+ 
++/**
++ * @brief 有界重开 HCI 传输：重开字符设备 + 重新注册 service-loop poll。
++ *
++ * @details 为什么需要它：`bt_sal_hci_transport_recv()` 一旦读失败就
++ *          `hci_remove_recv()` + `close()` + `return`，**poll 被摘掉、回调路径
++ *          整体死掉** —— 之后控制器说什么都没人听，只能靠上层把整栈复位
++ *          （adapter cycle → LCPU 复位 → 任务重建），代价 12 s 起、还要踢掉所有
++ *          链路。而多数读错误是瞬时的（设备被复位过、FIFO 抖动），重开一个字符
++ *          设备 + 重注册 poll 就够。@note 本函数跑在 service loop 里（poll 回调
++ *          里调来），所以在同一个上下文里摘/注册 poll 是安全的；重试之间只做
++ *          **短** usleep（最多 5×200 ms），不把 service loop 挂住太久。
++ *
++ * @return 0 = 重开成功（fd 与 poll 都已恢复）；负值 = 放弃（调用方再摘回调）。
++ */
++static int h4_rx_reopen(struct h4_data* h4)
++{
++    char dev_name[32];
++    unsigned tries = 0;
++    int fd;
++
++    if (bt_dev == NULL || bt_dev->name == NULL) {
++        return -EINVAL;
++    }
++
++    if (snprintf(dev_name, sizeof(dev_name), "%s", bt_dev->name) < 0) {
++        return -EINVAL;
++    }
++
++    while (tries < 5u) {
++        fd = open(dev_name, O_RDWR | O_BINARY | O_CLOEXEC);
++        if (fd >= 0) {
++            h4->fd = fd;
++
++            if (hci_handle != NULL) {
++                service_loop_remove_poll(hci_handle);
++                hci_handle = NULL;
++            }
++
++            hci_handle = service_loop_poll_fd(fd, POLL_READABLE, hci_poll_recv, NULL);
++            if (hci_handle == NULL) {
++                close(fd);
++                h4->fd = -1;
++                syslog(LOG_WARNING, "H4: rx reopen poll add failed fd:%d\n", fd);
++                return -1;
++            }
++
++            syslog(LOG_WARNING, "H4: rx reopen #%u ok (%s) fd:%d\n",
++                   tries + 1u, dev_name, fd);
++            return 0;
++        }
++
++        tries++;
++        if (tries < 5u) {
++            usleep(200 * 1000);
++        }
++    }
++
++    syslog(LOG_WARNING, "H4: rx reopen gave up after %u tries, errno %d\n",
++           tries, errno);
++    return -1;
++}
++
+ static void bt_sal_hci_transport_recv(void)
+ {
+     struct h4_data* h4 = bt_dev->data;
+@@ -231,10 +295,23 @@ static void bt_sal_hci_transport_recv(void)
+ 
+     len = read(h4->fd, frame + frame_size, sizeof(frame) - frame_size);
+     if (len < 0) {
++        /* 瞬时错误：**什么都不做**，poll 还在，下一轮可读会再进来。
++         * （原来 EAGAIN 也走下面那条路：摘回调 + 关设备 —— 一次"暂时没数据"
++         *   就把 RX 永久打死。） */
++        if (errno == EINTR || errno == EAGAIN) {
++            return;
++        }
++
+         BT_LOGE("Reading hci failed, errno %d", errno);
+-        hci_remove_recv(NULL);
+         close(h4->fd);
+         h4->fd = -1;
++        frame_size = 0;   /* 半帧丢掉，重新同步 */
++
++        /* **先重开，实在不行才摘回调。** 摘回调 = 放弃 RX，只有上层复位整栈
++         * 才能救回来（见 h4_rx_reopen 的说明）。 */
++        if (h4_rx_reopen(h4) != 0) {
++            hci_remove_recv(NULL);
++        }
+         return;
+     }
+ 

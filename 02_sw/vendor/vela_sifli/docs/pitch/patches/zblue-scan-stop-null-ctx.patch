@@ -1,0 +1,68 @@
+diff --git a/subsys/bluetooth/host/scan.c b/subsys/bluetooth/host/scan.c
+--- a/subsys/bluetooth/host/scan.c
++++ b/subsys/bluetooth/host/scan.c
+@@ -108,6 +108,21 @@ static struct bt_le_per_adv_sync *get_pending_per_adv_sync(struct bt_dev *hdev);
+ 
+ void bt_scan_softreset(struct bt_dev *hdev)
+ {
++	/* 板级改动（my_vendor，见 docs/pitch/zblue-scan-stop-null-ctx.md）：
++	 * `hdev->scan_ctx` 只在 HCI_RESET 完成（hci_reset_complete → bt_scan_reset）
++	 * 或 bt_finalize_init 里被赋值，设备结构在初始化路径上会被 memset 清零。
++	 * 于是"适配器已拆掉、复位还没回来"这个窗口里再来一次 scan-stop，就是
++	 * hdev->scan_ctx == NULL 解引用 —— 实机 2026-09-18 20:35 的 panic 正是它
++	 * （MemManage cfsr=0x82 mmfar=0x4，pc=bt_scan_softreset scan.c:111，
++	 *  lr=bt_le_scan_stop_mc scan.c:1841，task=ble_companion）。
++	 *
++	 * 调用方可能来自 SAL 里排队的工作项（适配器 cycle 拆栈时队列还没清空），
++	 * 从上层堵不干净，所以在这里直接变 no-op。 */
++	if (hdev == NULL || hdev->scan_ctx == NULL) {
++		LOG_WRN("scan softreset skipped, scan ctx not ready");
++		return;
++	}
++
+ 	hdev->scan_ctx->scan_dev_found_cb = NULL;
+ #if defined(CONFIG_BT_EXT_ADV)
+ 	reset_reassembling_advertiser(hdev);
+@@ -515,6 +530,14 @@ int bt_le_scan_user_add(struct bt_dev *hdev, enum bt_le_scan_user flag)
+ {
+ 	uint32_t err;
+ 
++	/* 板级改动（my_vendor）：同 user_remove —— scan_check_if_state_allowed()
++	 * 第一行就解引用 scan_ctx。这里返回 -ENODEV 而不是 0：返回 0 会让上层
++	 * 以为 flag 已经置上、不再重试。 */
++	if (hdev == NULL || hdev->scan_ctx == NULL) {
++		LOG_WRN("scan state add skipped, scan ctx not ready");
++		return -ENODEV;
++	}
++
+ 	if (flag == BT_LE_SCAN_USER_NONE) {
+ 		/* Only check if the scanner parameters should be updated / the scanner should be
+ 		 * started. This is mainly triggered once connections are established.
+@@ -539,6 +562,13 @@ int bt_le_scan_user_remove(struct bt_dev *hdev, enum bt_le_scan_user flag)
+ 
+ int bt_le_scan_user_remove(struct bt_dev *hdev, enum bt_le_scan_user flag)
+ {
++	/* 板级改动（my_vendor）：适配器拆栈 / HCI 复位未回的窗口里 scan_ctx 是
++	 * NULL，本函数与它调用的 scan_update() 都会解引用。见脚本头注释。 */
++	if (hdev == NULL || hdev->scan_ctx == NULL) {
++		LOG_WRN("scan state remove skipped, scan ctx not ready");
++		return 0;
++	}
++
+ 	if (flag == BT_LE_SCAN_USER_NONE) {
+ 		/* Only check if the scanner parameters should be updated / the scanner should be
+ 		 * started. This is mainly triggered once connections are established.
+@@ -1838,7 +1868,12 @@ int bt_le_scan_stop_mc(uint8_t dev_id)
+ 	}
+ 
+ 	bt_scan_softreset(hdev);
+-	hdev->scan_ctx->scan_dev_found_cb = NULL;
++
++	/* 同一窗口的第二处解引用（scan.c:1856）：softreset 已经判过 NULL，
++	 * 那次没 panic 只是因为同一路径，但这里同样不能裸写。 */
++	if (hdev->scan_ctx != NULL) {
++		hdev->scan_ctx->scan_dev_found_cb = NULL;
++	}
+ 
+ 	if (IS_ENABLED(CONFIG_BT_EXT_ADV) &&
+ 	    atomic_test_and_clear_bit(hdev->flags, BT_DEV_SCAN_LIMITED)) {

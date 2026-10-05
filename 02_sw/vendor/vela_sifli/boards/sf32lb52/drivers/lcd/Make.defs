@@ -1,0 +1,49 @@
+##################################################################l##########
+# platform/lcd/Make.defs
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.  The
+# ASF licenses this file to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance with the
+# License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+############################################################################
+
+ifeq ($(CONFIG_LCD),y)
+ifeq ($(CONFIG_LCD_USING_ST7789S),y)
+  CSRCS += st7789s_lcd.c tk024f3036_panel.c
+ifeq ($(CONFIG_LCD_ST7789S_SOFTSPI),y)
+  CSRCS += lcd_softspi.c
+endif
+else
+  CSRCS += sf32lb_lcd.c
+endif
+endif
+
+ifeq ($(CONFIG_LCD_USING_ILI8688E),y)
+  CSRCS += ili8688e.c
+endif
+
+ifeq ($(CONFIG_LCD_USING_CO5300),y)
+  CSRCS += co5300.c
+endif
+
+ifeq ($(CONFIG_LCD_USING_NV3031A),y)
+  CSRCS += nv3031a.c
+endif
+
+DEPPATH += --dep-path lcd
+VPATH += :platform/lcd
+
+
+
+

@@ -1,0 +1,253 @@
+/****************************************************************************
+ * vendor/sifli/boards/sf32lb52-nano/scripts/ld.script
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+
+MEMORY
+{
+  /* PSRAM1 CBUS: main code loaded here by bootloader from NAND */
+  flash (rx) : ORIGIN = 0x10000000, LENGTH = 4M
+  sram (rwx) : ORIGIN = 0x20000000, LENGTH = 512K
+  psram (rwx) : ORIGIN = 0x60400000, LENGTH = 4M
+}
+
+OUTPUT_ARCH(arm)
+EXTERN(_vectors)
+/* Provide __Vectors alias for SystemInit() compatibility */
+__Vectors = _vectors;
+ENTRY(_stext)
+
+SECTIONS
+{
+    /* Discard build-id to ensure vectors start at flash base */
+    /DISCARD/ : {
+        *(.note.gnu.build-id)
+    }
+
+    .text : {
+        _stext = ABSOLUTE(.);
+        /* Ensure vector table is properly aligned (must be at flash start) */
+        . = ALIGN(512);
+        KEEP(*(.vectors))
+        /* Add padding after vectors to match SDK layout */
+        . = ALIGN(4);
+        *(.text .text.*)
+        *(.fixup)
+        *(.gnu.warning)
+        *(.rodata .rodata.*)
+
+        /* my_vendor：抽换件的"镜像侧标记"（见 docs/pitch/README.md）。
+         * 这类常量没有任何代码引用，会被链接期 --gc-sections 当垃圾段丢掉；
+         * KEEP 住以后 `strings nuttx | grep "myvendor override compiled"`
+         * 就能直接从镜像看出哪些抽换件真的编了进来（strip 后仍在）。
+         * 本段 > flash，所以这些字符串只占 flash，不占 SRAM。 */
+        KEEP(*(.myvendor_marker))
+        *(.gnu.linkonce.t.*)
+        *(.glue_7)
+        *(.glue_7t)
+        *(.got)
+        *(.gcc_except_table)
+        *(.gnu.linkonce.r.*)
+
+        KEEP(*(.init))
+        KEEP(*(.fini))
+
+        /* Section information for finsh shell */
+        . = ALIGN(4);
+        __fsymtab_start = .;
+        KEEP(*(FSymTab))
+        __fsymtab_end = .;
+
+        . = ALIGN(4);
+        __vsymtab_start = .;
+        KEEP(*(VSymTab))
+        __vsymtab_end = .;
+
+        . = ALIGN(4);
+        __rt_utest_tc_tab_start = .;
+        KEEP(*(UtestTcTab))
+        __rt_utest_tc_tab_end = .;
+
+        /* Section information for initial */
+        . = ALIGN(4);
+        __rt_init_start = .;
+        KEEP(*(SORT(.rti_fn*)))
+        __rt_init_end = .;
+
+        . = ALIGN(4);
+        __sifli_reg_start__ = .;
+        KEEP(*(SORT(.sifli_reg*)))
+        __sifli_reg_end__ = .;
+
+        . = ALIGN(4);
+        __bt_sifli_reg_start__ = .;
+        KEEP(*(SORT(.bt_sifli_reg*)))
+        __bt_sifli_reg_end__ = .;
+
+        /* Section information for modules */
+        . = ALIGN(4);
+        __rtmsymtab_start = .;
+        KEEP(*(RTMSymTab))
+        __rtmsymtab_end = .;
+
+        /* Section information for LCD drivers */
+        . = ALIGN(4);
+        LcdDriverDescTab_start = .;
+        KEEP(*(LcdDriverDescTab))
+        LcdDriverDescTab_end = .;
+
+        KEEP(*(.eh_frame*))
+        _etext = ABSOLUTE(.);
+    } > flash
+
+    .ARM.extab : {
+        *(.ARM.extab*)
+    } > flash
+
+    __exidx_start = ABSOLUTE(.);
+    .ARM.exidx : {
+        *(.ARM.exidx*)
+    } > flash
+    __exidx_end = ABSOLUTE(.);
+
+    .copy.table : {
+        . = ALIGN(4);
+        __copy_table_start__ = .;
+        LONG (LOADADDR(.data))
+        LONG (ADDR(.data))
+        LONG (SIZEOF(.data))
+        __copy_table_end__ = .;
+    } > flash
+
+    .zero.table : {
+        . = ALIGN(4);
+        __zero_table_start__ = .;
+        LONG (__bss_start__)
+        LONG (__bss_end__ - __bss_start__)
+        __zero_table_end__ = .;
+    } > flash
+
+    .tdata : {
+        _stdata = ABSOLUTE(.);
+        *(.tdata .tdata.* .gnu.linkonce.td.*);
+        _etdata = ABSOLUTE(.);
+    } > flash
+
+    .tbss : {
+        _stbss = ABSOLUTE(.);
+        *(.tbss .tbss.* .gnu.linkonce.tb.* .tcommon);
+        _etbss = ABSOLUTE(.);
+    } > flash
+
+    _eronly = ABSOLUTE(.);
+    __etext = ALIGN(4);
+
+    /* The RAM vector table (if present) should lie at the beginning of SRAM */
+
+    .ram_vectors : {
+        *(.ram_vectors)
+    } > sram
+
+    .data : {
+        _sdata = ABSOLUTE(.);
+        __data_start__ = .;
+        *(vtable)
+        *(.data)
+        *(.data.*)
+        *(.gnu.linkonce.d.*)
+        CONSTRUCTORS
+
+        . = ALIGN(4);
+        /* preinit data */
+        PROVIDE_HIDDEN (__preinit_array_start = .);
+        KEEP(*(.preinit_array))
+        PROVIDE_HIDDEN (__preinit_array_end = .);
+
+        . = ALIGN(4);
+        /* init data */
+        _sinit = ABSOLUTE(.);
+        PROVIDE(__ctors_start__ = .);
+        PROVIDE_HIDDEN (__init_array_start = .);
+        KEEP(*(SORT(.ctors.*)))
+        KEEP(*(.ctors))
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array))
+        _einit = ABSOLUTE(.);
+        PROVIDE_HIDDEN (__init_array_end = .);
+        PROVIDE(__ctors_end__ = .);
+
+        . = ALIGN(4);
+        /* fini data */
+        PROVIDE(__dtors_start__ = .);
+        PROVIDE_HIDDEN (__fini_array_start = .);
+        KEEP(*(SORT(.dtors.*)))
+        KEEP(*(.dtors))
+        KEEP(*(SORT(.fini_array.*)))
+        KEEP(*(.fini_array))
+        PROVIDE_HIDDEN (__fini_array_end = .);
+        PROVIDE(__dtors_end__ = .);
+
+        KEEP(*(.jcr*))
+        . = ALIGN(4);
+        __data_end__ = .;
+        _edata = ABSOLUTE(.);
+    } > sram AT > flash
+
+    .ramfunc : {
+        . = ALIGN(4);
+        _sramfunc = ABSOLUTE(.);
+        *(.ramfunc .ramfunc.*)
+        . = ALIGN(4);
+        _eramfunc = ABSOLUTE(.);
+    } > sram AT > flash
+
+    _siramfunc = LOADADDR(.ramfunc);
+
+    .bss : {
+        . = ALIGN(4);
+        _sbss = ABSOLUTE(.);
+        __bss_start__ = .;
+        *(.bss)
+        *(.bss.*)
+        *(.gnu.linkonce.b.*)
+        *(COMMON)
+        . = ALIGN(4);
+        __bss_end__ = .;
+        _ebss = ABSOLUTE(.);
+    } > sram
+
+    /* Heap starts after BSS */
+    . = ALIGN(4);
+    __end__ = .;
+    PROVIDE(end = .);
+    PROVIDE(_end = .);
+
+    /* Stabs debugging sections. */
+    .stab 0 : { *(.stab) }
+    .stabstr 0 : { *(.stabstr) }
+    .stab.excl 0 : { *(.stab.excl) }
+    .stab.exclstr 0 : { *(.stab.exclstr) }
+    .stab.index 0 : { *(.stab.index) }
+    .stab.indexstr 0 : { *(.stab.indexstr) }
+    .comment 0 : { *(.comment) }
+    .debug_abbrev 0 : { *(.debug_abbrev) }
+    .debug_info 0 : { *(.debug_info) }
+    .debug_line 0 : { *(.debug_line) }
+    .debug_pubnames 0 : { *(.debug_pubnames) }
+    .debug_aranges 0 : { *(.debug_aranges) }
+}

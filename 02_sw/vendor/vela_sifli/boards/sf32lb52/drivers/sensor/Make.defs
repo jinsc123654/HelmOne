@@ -1,0 +1,23 @@
+############################################################################
+# vendor/my_vendor/boards/sf32lb52/drivers/sensor/Make.defs
+#
+# SPDX-License-Identifier: Apache-2.0
+############################################################################
+
+ifeq ($(CONFIG_BOARD_BMP388),y)
+CSRCS += bmp388_uorb.c
+endif
+
+ifeq ($(CONFIG_BOARD_MMC5983MA),y)
+CSRCS += mmc5983ma_uorb.c
+endif
+
+ifeq ($(CONFIG_BOARD_BMI270),y)
+CSRCS += sf32lb52_bmi270_chip.c sf32lb52_bmi270_uorb.c
+VPATH += :platform$(DELIM)sensor$(DELIM)sf32lb52_bmi270
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)$(DELIM)drivers$(DELIM)platform$(DELIM)sensor$(DELIM)sf32lb52_bmi270
+endif
+
+DEPPATH += --dep-path platform$(DELIM)sensor
+VPATH += :platform$(DELIM)sensor
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)$(DELIM)drivers$(DELIM)platform$(DELIM)sensor

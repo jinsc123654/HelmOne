@@ -1,0 +1,13 @@
+############################################################################
+# vendor/sifli/chips/sf32lb52/ipc_queue/Make.defs
+############################################################################
+
+CHIP_CSRCS += ipc_queue/common/circular_buf.c
+CHIP_CSRCS += ipc_queue/common/ipc_hw.c
+CHIP_CSRCS += ipc_queue/common/ipc_queue.c
+CHIP_CSRCS += ipc_queue/porting/sf32lb52x/hcpu/ipc_hw_port.c
+
+INCLUDES += ${INCDIR_PREFIX}$(ARCH_SRCDIR)$(DELIM)ipc_queue
+INCLUDES += ${INCDIR_PREFIX}$(ARCH_SRCDIR)$(DELIM)ipc_queue$(DELIM)common
+INCLUDES += ${INCDIR_PREFIX}$(ARCH_SRCDIR)$(DELIM)ipc_queue$(DELIM)porting$(DELIM)os$(DELIM)vela
+INCLUDES += ${INCDIR_PREFIX}$(ARCH_SRCDIR)$(DELIM)ipc_queue$(DELIM)porting$(DELIM)sf32lb52x$(DELIM)hcpu

@@ -1,0 +1,2478 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+if ARCH_CHIP_CUSTOM
+
+comment "SIFLI Configuration Options"
+
+choice
+    prompt "SIFLI Chip Selection"
+    default ARCH_CHIP_SF32LB52
+
+config ARCH_CHIP_SF32LB52
+	bool "sf32lb52"
+ 	select ARCH_ARMV8M
+	select ARCH_CORTEXM33
+    select ARCH_HAVE_FPU
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_FETCHADD
+	select ARCH_HAVE_HEAPCHECK
+	select ARCH_HAVE_PROGMEM
+	select ARCH_HAVE_SPI_BITORDER
+	select ARM_HAVE_MPU_UNIFIED
+	select ARMV8M_HAVE_STACKCHECK
+	select ARMV8M_USEBASEPRI
+	select ARMV8M_HAVE_ICACHE
+	select ARMV8M_HAVE_DCACHE
+	select ARMV8M_ICACHE
+	select ARMV8M_DCACHE
+	select ARCH_ICACHE
+	select ARCH_DCACHE
+	select BF0_HCPU
+
+endchoice
+
+menu "On-chip Peripheral RTOS Drivers"
+
+    menuconfig BSP_USING_GPIO
+        bool "Enable GPIO"
+        select RT_USING_PIN
+        default y
+        if BSP_USING_GPIO
+            config BSP_GPIO_HANDLE
+            int "GPIO BASE number"
+            default 2
+        endif
+    menuconfig BSP_USING_BUTTON
+        bool "Enable BUTTON"
+        default n
+        select BSP_USING_GPIO
+        depends on SOC_SF32LB55X
+        if BSP_USING_BUTTON
+            choice 
+                prompt "select timer used for button"
+                default BSP_USING_GPT2_BUTTON
+                config BSP_USING_GPT2_BUTTON
+                    bool "GPT2 input capture button"
+                    select BSP_USING_TIM
+                    select BSP_USING_GPTIM2               
+                config BSP_USING_GPT3_BUTTON
+                    bool "GPT3 input capture button"
+                    select BSP_USING_TIM
+                    select BSP_USING_GPTIM3
+                config BSP_USING_GPT5_BUTTON
+                    bool "GPT5 input capture button"
+                    select BSP_USING_TIM
+                    select BSP_USING_GPTIM5
+            endchoice
+            config SINGLE_AND_DOUBLE_TRIGGER
+                bool "support single and double click"
+                default y
+            config CONTINUOS_TRIGGER
+                bool "support continuos trigger"
+                default n
+            config LONG_FREE_TRIGGER
+                bool "support long press release"
+                default n    
+            config BUTTON_DEBOUNCE_TIME
+                int "This value is the button debounce time"
+                default 2  
+                help
+                    "This value = (n-1)*(button processing callback cycle)"
+            config BUTTON_CONTINUOS_CYCLE
+                int "This value is the button press the trigger cycle continuously"
+                default 1  
+                help
+                    "This value = (n-1)*(button processing callback cycle)"    
+            config BUTTON_LONG_CYCLE
+                int "This value is the button long press cycle time"
+                default 1  
+                help
+                    "This value = (n-1)*(button processing callback cycle)"
+            config BUTTON_DOUBLE_TIME
+                int "This value is the button double click time"
+                default 15  
+                help
+                    "This value = (n-1)*(button processing callback cycle)"        
+            config BUTTON_LONG_TIME
+                int "This value is the button long press time"
+                default 50  
+                help
+                    "This value = (n-1)*(button processing callback cycle)"        
+        endif
+    
+    config BSP_USING_DMA
+        bool "Enable DMA"
+        default y
+
+    menuconfig BSP_USING_UART
+        bool "Enable UART"
+        default y
+        select MCU_SERIAL
+        select UART_SERIALDRIVER
+        
+        config UART_BUFSZ
+            int "Uart Buffer size"
+            default 512
+        
+        if BSP_USING_UART
+            config BSP_USING_UART1
+                bool "Enable UART1"
+                default n
+
+            config BSP_UART1_RX_USING_DMA
+                bool "Enable UART1 RX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART1
+                default n
+
+            config BSP_UART1_TX_USING_DMA
+                bool "Enable UART1 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART1
+                default n
+                
+            config BSP_USING_UART2
+                bool "Enable UART2"
+                default n
+
+            config BSP_UART2_RX_USING_DMA
+                bool "Enable UART2 RX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART2
+                default n
+            config BSP_UART2_TX_USING_DMA
+                bool "Enable UART2 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART2
+                default n
+
+            config BSP_USING_UART3
+                bool "Enable UART3"
+                default n
+
+            config BSP_UART3_RX_USING_DMA
+                bool "Enable UART3 RX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART3
+                default n
+            config BSP_UART3_TX_USING_DMA
+                bool "Enable UART3 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART3
+                default n
+                
+                
+            config BSP_USING_UART4
+                bool "Enable UART4"
+                default n
+
+            config BSP_UART4_RX_USING_DMA
+                bool "Enable UART4 RX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART4
+                default n
+            config BSP_UART4_TX_USING_DMA
+                bool "Enable UART4 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART4
+                default n
+
+            config BSP_USING_UART5
+                bool "Enable UART5"
+                default n
+
+            config BSP_UART5_RX_USING_DMA
+                bool "Enable UART5 RX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART5
+                default n
+            config BSP_UART5_TX_USING_DMA
+                bool "Enable UART5 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART5
+                default n                
+                
+            config BSP_USING_UART6
+                bool "Enable UART6"
+                depends on SOC_SF32LB58X || SOC_SF32LB56X
+                default n
+
+            config BSP_UART6_RX_USING_DMA
+                bool "Enable UART6 RX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART6
+                default n
+            config BSP_UART6_TX_USING_DMA
+                bool "Enable UART6 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_UART6
+                default n                
+        endif
+
+    menuconfig BSP_USING_SPI
+        bool "Enable SPI BUS"
+        default n
+        select RT_USING_SPI
+        if BSP_USING_SPI
+            config BSP_USING_SPI1
+                bool "Enable SPI1 BUS"
+                default n
+
+            config BSP_SPI1_TX_USING_DMA
+                bool "Enable SPI1 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_SPI1
+                default n
+                
+            config BSP_SPI1_RX_USING_DMA
+                bool "Enable SPI1 RX DMA"
+                depends on BSP_USING_SPI1
+                select BSP_USING_DMA
+                default n
+
+            config BSP_USING_SPI2
+                bool "Enable SPI2 BUS"
+                default n
+
+            config BSP_SPI2_TX_USING_DMA
+                bool "Enable SPI2 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_SPI2
+                default n
+                
+            config BSP_SPI2_RX_USING_DMA
+                bool "Enable SPI2 RX DMA"
+                depends on BSP_USING_SPI2
+                select BSP_USING_DMA
+                default n
+                
+            config BSP_USING_SPI3
+                bool "Enable SPI3 BUS"
+                default n
+
+            config BSP_SPI3_TX_USING_DMA
+                bool "Enable SPI3 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_SPI3
+                default n
+                
+            config BSP_SPI3_RX_USING_DMA
+                bool "Enable SPI3 RX DMA"
+                depends on BSP_USING_SPI3
+                select BSP_USING_DMA
+                default n
+
+            config BSP_USING_SPI4
+                bool "Enable SPI4 BUS"
+                default n
+
+            config BSP_SPI4_TX_USING_DMA
+                bool "Enable SPI4 TX DMA"
+                select BSP_USING_DMA
+                depends on BSP_USING_SPI4
+                default n
+                
+            config BSP_SPI4_RX_USING_DMA
+                bool "Enable SPI4 RX DMA"
+                depends on BSP_USING_SPI4
+                select BSP_USING_DMA
+                default n
+        endif
+
+        
+    menuconfig BSP_USING_I2C
+        bool "Enable I2C BUS"
+        default n
+        select RT_USING_I2C
+        if BSP_USING_I2C
+            config BSP_USING_I2C1
+                bool "Enable I2C1 BUS"
+                default n
+            config BSP_I2C1_USING_DMA
+                bool "I2C1 use DMA"
+                depends on BSP_USING_I2C1
+                default n
+            config BSP_USING_I2C2
+                bool "Enable I2C2 BUS"
+                default n
+            config BSP_I2C2_USING_DMA
+                bool "I2C2 use DMA"
+                depends on BSP_USING_I2C2
+                default n
+            config BSP_USING_I2C3
+                bool "Enable I2C3 BUS"
+                default n
+            config BSP_I2C3_USING_DMA
+                bool "I2C3 use DMA"
+                depends on BSP_USING_I2C3
+                default n
+            config BSP_USING_I2C4
+                bool "Enable I2C4 BUS"
+                default n
+            config BSP_I2C4_USING_DMA
+                bool "I2C4 use DMA"
+                depends on BSP_USING_I2C4
+                default n
+            config BSP_USING_I2C5
+                bool "Enable I2C5 BUS"
+                depends on !SOC_SF32LB54X
+                default n
+            config BSP_I2C5_USING_DMA
+                bool "I2C5 use DMA"
+                depends on BSP_USING_I2C5
+                default n    
+            config BSP_USING_I2C6
+                depends on !SOC_SF32LB54X
+                bool "Enable I2C6 BUS"
+                default n
+            config BSP_I2C6_USING_DMA
+                bool "I2C6 use DMA"
+                depends on BSP_USING_I2C6
+                default n       
+            config BSP_USING_I2C7
+                bool "Enable I2C7 BUS"
+                depends on SOC_SF32LB58X || SOC_SF32LB56X
+                default n
+            config BSP_I2C7_USING_DMA
+                bool "I2C7 use DMA"
+                depends on BSP_USING_I2C7
+                default n       
+        endif
+
+    menuconfig BSP_USING_SOFT_I2C
+        bool "Enable I2C BUS (software simulation)"
+        default n
+        depends on SOC_SF32LB55X
+        select RT_USING_I2C
+        select RT_USING_I2C_BITOPS
+        select RT_USING_PIN
+        if BSP_USING_SOFT_I2C
+            config BSP_USING_SOFT_I2C1
+                bool "Enable I2C1 BUS"
+                default n
+                
+            if BSP_USING_SOFT_I2C1
+                config BSP_I2C1_SCL_PIN
+                    int "i2c1 scl pin number"
+                    range 1 216
+                    default 34
+                config BSP_I2C1_SDA_PIN
+                    int "I2C1 sda pin number"
+                    range 1 216
+                    default 35
+            endif
+
+            config BSP_USING_SOFT_I2C2
+                bool "Enable I2C2 BUS"
+                default n
+                
+            if BSP_USING_SOFT_I2C2
+                config BSP_I2C2_SCL_PIN
+                    int "i2c2 scl pin number"
+                    range 1 216
+                    default 34
+                config BSP_I2C2_SDA_PIN
+                    int "I2C2 sda pin number"
+                    range 1 216
+                    default 35
+            endif
+
+            config BSP_USING_SOFT_I2C3
+                bool "Enable I2C3 BUS"
+                default n
+
+            if BSP_USING_SOFT_I2C3
+                config BSP_I2C3_SCL_PIN
+                    int "i2c3 scl pin number"
+                    range 1 216
+                    default 34
+                config BSP_I2C3_SDA_PIN
+                    int "I2C3 sda pin number"
+                    range 1 216
+                    default 35
+            endif
+
+            config BSP_USING_SOFT_I2C4
+                bool "Enable I2C4 BUS"
+                default n
+
+            if BSP_USING_SOFT_I2C4
+                config BSP_I2C4_SCL_PIN
+                    int "i2c4 scl pin number"
+                    range 1 216
+                    default 34
+                config BSP_I2C4_SDA_PIN
+                    int "I2C4 sda pin number"
+                    range 1 216
+                    default 35
+            endif
+
+        endif
+    menuconfig BSP_USING_TIM
+        bool "Enable timer"
+        default n
+        select RT_USING_HWTIMER
+        if BSP_USING_TIM
+            config BSP_USING_GPTIM1
+                bool "Enable GPTimer1"
+                default n
+
+            config BSP_USING_GPTIM2
+                bool "Enable GPTimer2"
+                default n
+
+            config BSP_USING_GPTIM3
+                bool "Enable GPTimer3"
+                default n
+
+            config BSP_USING_GPTIM4
+                bool "Enable GPTimer4"
+                default n
+                
+            config BSP_USING_GPTIM5
+                bool "Enable GPTimer5"
+                default n                
+                
+            config BSP_USING_ATIM1
+                bool "Enable ATimer1"
+                default n
+                
+            config BSP_USING_ATIM2
+                bool "Enable ATimer2"
+                depends on SOC_SF32LB58X
+                default n
+                
+            config BSP_USING_BTIM1
+                bool "Enable BTimer1"
+                default n
+
+            config BSP_USING_BTIM2
+                bool "Enable BTimer2"
+                default n
+                
+            config BSP_USING_BTIM3
+                bool "Enable BTimer3"
+                default n
+
+            config BSP_USING_BTIM4
+                bool "Enable BTimer4"
+                default n
+
+            config BSP_USING_LPTIM1
+                bool "Enable LPTIM1"
+                default n
+            config BSP_USING_LPTIM2
+                bool "Enable LPTIM2"
+                default n
+            config BSP_USING_LPTIM3
+                bool "Enable LPTIM3"
+                default n    
+        endif
+
+    menuconfig BSP_USING_PWM
+        bool "Enable pwm"
+        default n
+        select RT_USING_PWM
+        if BSP_USING_PWM
+            config BSP_USING_PWM2
+                bool "Using PWM 2"
+                default n
+            config BSP_USING_PWM3
+                bool "Using PWM 3"
+                default n
+            config BSP_USING_PWM4
+                bool "Using PWM 4"
+                default n
+            config BSP_USING_PWM5
+                bool "Using PWM 5"
+                default n
+            config BSP_USING_PWM6
+                bool "Using PWM 6"
+                default n
+            config BSP_USING_PWMA1
+                bool "Using PWM A1"
+                default n
+            config BSP_USING_PWMA2
+                bool "Using PWM A2"
+                default n
+            config BSP_USING_PWM_LPTIM1
+                bool "Using PWM with LPTIM1"
+                default n
+            config BSP_USING_PWM_LPTIM2
+                bool "Using PWM with LPTIM2"
+                default n
+            config BSP_USING_PWM_LPTIM3
+                bool "Using PWM with LPTIM3"
+                default n
+        endif
+
+    menuconfig BSP_USING_ADC
+        bool "Enable ADC"
+        default n
+        select RT_USING_ADC
+        if BSP_USING_ADC
+            config BSP_USING_ADC1
+                bool "Enable ADC1"
+                default n
+            config BSP_USING_ADC2
+                bool "Enable ADC2"
+                default n
+        endif
+
+    config BSP_USING_SDADC
+        bool "Enable SDADC"
+        select RT_USING_ADC
+        depends on SOC_SF32LB58X || SOC_SF32LB55X
+        default n
+            
+    config BSP_USING_COMP
+        bool "Enable LPCOMP"
+        default n
+
+    menuconfig BSP_USING_MPI
+        bool "Enable MPI"
+        depends on !SOC_SF32LB55X
+        default y
+
+        config BSP_USING_SPI_FLASH
+            bool "Enable SPI FLASH Driver"
+            depends on BSP_USING_MPI
+            default y
+
+        if BSP_USING_MPI
+            menuconfig BSP_ENABLE_MPI1
+                bool "MPI Controller 1 Enable"
+                default n
+                if BSP_ENABLE_MPI1
+                    config BSP_ENABLE_QSPI1
+                        bool 
+                        default y
+                    choice
+                        prompt "MPI Mode"
+                        default BSP_MPI1_MODE_0
+
+                        config BSP_MPI1_MODE_0
+                            bool "NOR"
+                        config BSP_MPI1_MODE_1
+                            bool "NAND"
+                        config BSP_MPI1_MODE_2
+                            bool "PSRAM"
+                        config BSP_MPI1_MODE_3
+                            bool "OPSRAM"
+                        config BSP_MPI1_MODE_4
+                            bool "HPSRAM"
+                        config BSP_MPI1_MODE_5
+                            bool "LEGACY_PSRAM"
+                        config BSP_MPI1_MODE_6
+                            bool "HYPERBUS_PSRAM"
+                    endchoice
+
+                    config BSP_QSPI1_MODE
+                        int
+                        default 0 if BSP_MPI1_MODE_0
+                        default 1 if BSP_MPI1_MODE_1
+                        default 2 if BSP_MPI1_MODE_2
+                        default 3 if BSP_MPI1_MODE_3
+                        default 4 if BSP_MPI1_MODE_4
+                        default 5 if BSP_MPI1_MODE_5
+                        default 6 if BSP_MPI1_MODE_6
+
+                    if BSP_MPI1_MODE_0
+                        config BSP_USING_NOR_FLASH1
+                            bool
+                            default y
+                        config BSP_QSPI1_USING_DMA
+                            bool 
+                            default y
+                        config BSP_MPI1_EN_DTR
+                            bool "Enable DTR mode"
+                            default n
+                    endif
+                    if BSP_MPI1_MODE_1
+                        config BSP_USING_NAND_FLASH1
+                            bool
+                            default y
+                        config BSP_QSPI1_USING_DMA
+                            bool 
+                            default y
+                    endif
+                    if BSP_MPI1_MODE_2
+                        config BSP_USING_PSRAM1
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI1_MODE_3
+                        config BSP_USING_PSRAM1
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI1_MODE_4
+                        config BSP_USING_PSRAM1
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI1_MODE_5
+                        config BSP_USING_PSRAM1
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI1_MODE_6
+                        config BSP_USING_PSRAM1
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI1_MEM_SIZE
+                        int "MPI1 Mem Size (MB)"
+                        default 8
+                endif        
+                    
+            menuconfig BSP_ENABLE_MPI2
+                bool "MPI Controller 2 Enable"
+                default n
+                if BSP_ENABLE_MPI2
+                    config BSP_ENABLE_QSPI2
+                        bool 
+                        default y
+                    choice
+                        prompt "MPI Mode"
+                        default BSP_MPI2_MODE_0
+
+                        config BSP_MPI2_MODE_0
+                            bool "NOR"
+                        config BSP_MPI2_MODE_1
+                            bool "NAND"
+                        config BSP_MPI2_MODE_2
+                            bool "PSRAM"
+                        config BSP_MPI2_MODE_3
+                            bool "OPSRAM"
+                        config BSP_MPI2_MODE_4
+                            bool "HPSRAM"
+                        config BSP_MPI2_MODE_5
+                            bool "LEGACY_PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI2_MODE
+                        int
+                        default 0 if BSP_MPI2_MODE_0
+                        default 1 if BSP_MPI2_MODE_1
+                        default 2 if BSP_MPI2_MODE_2
+                        default 3 if BSP_MPI2_MODE_3
+                        default 4 if BSP_MPI2_MODE_4
+                        default 5 if BSP_MPI2_MODE_5
+
+                    if BSP_MPI2_MODE_0
+                        config BSP_USING_NOR_FLASH2
+                            bool
+                            default y
+                        config BSP_QSPI2_USING_DMA
+                            bool 
+                            default y
+                        config BSP_MPI2_EN_DTR
+                            bool "Enable DTR mode"
+                            default n
+                    endif
+                    if BSP_MPI2_MODE_1
+                        config BSP_USING_NAND_FLASH2
+                            bool
+                            default y
+                        config BSP_QSPI2_USING_DMA
+                            bool 
+                            default y
+                    endif
+                    if BSP_MPI2_MODE_2
+                        config BSP_USING_PSRAM2
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif         
+                    if BSP_MPI2_MODE_3
+                        config BSP_USING_PSRAM2
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI2_MODE_4
+                        config BSP_USING_PSRAM2
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI2_MODE_5
+                        config BSP_USING_PSRAM2
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI2_MEM_SIZE
+                        int "MPI2 Mem Size (MB)"
+                        default 32
+                endif
+
+            if BSP_MPI2_MODE_1
+                config BSP_USING_SPI_NAND
+                    bool
+                    default y
+            endif
+            config BSP_DISABLE_BBM
+                bool "Disable Nand Bad Block Manager"
+                depends on BSP_USING_SPI_NAND
+                default n
+
+            config MYVENDOR_BOARD_PSRAM_POOL_KB
+                int "PSRAM pool for board_malloc_psram (KiB)"
+                default 11008
+                depends on BSP_USING_PSRAM
+                ---help---
+                    Fixed PSRAM buffer registered as a separate NuttX heap
+                    (mm_initialize). Excluded from kumm heap in
+                    sifli_allocateheap.c. Set 0 to fall back to SRAM malloc.
+
+                    PSRAM_DATA is 12 MiB. kumm = 12 MiB − this pool − MTP
+                    tail (256 KiB). Product: 11008 KiB pool so Umem PSRAM
+                    kumm is 1 MiB. LVGL image cache (1 MiB) and map arenas
+                    allocate from this pool.
+
+            config MYVENDOR_PSRAM_CACHE_WB
+                bool "PSRAM data cache write-back (global)"
+                default n
+                depends on BSP_USING_PSRAM
+                ---help---
+                    Build the arch/HAL targets with PSRAM_CACHE_WB: the whole
+                    PSRAM window (0x60000000-0x61FFFFFF) turns write-back
+                    instead of write-through.
+
+                    Why: store throughput. Write-through costs ~22 cycles per
+                    byte (every store goes to the bus); write-back lets the
+                    core D-cache absorb them. Measured on the "nationwide hop"
+                    workload (bicycle_nsh gnss hop): the CPU copy/scroll
+                    segment cyc_begin drops 40%, cold tile load 28%, while
+                    tile rasterization (457 KB canvas vs 16 KB D-cache) barely
+                    moves.
+
+                    Cost: every non-CPU master touching PSRAM needs cache
+                    maintenance (clean before it reads, invalidate after it
+                    writes). That work is done and the evidence is in
+                    docs/psram_cache_wb_audit.md: EPIC output is invalidated
+                    per written row (myvendor_epic_blit.c) and the generic DMA
+                    destination is cleaned (bf0_hal_dma.c). To get a
+                    write-through baseline for A/B, drop this line from the
+                    defconfig and force a reconfigure (see the audit doc).
+
+            comment "Product identity (USB / MTP / BLE / OVNX wrap)"
+
+            config MYVENDOR_PRODUCT_NAME
+                string "Product name"
+                default "Helm One"
+                ---help---
+                    Single product name: MTP model, BLE advertised name,
+                    USB iProduct. BLE/MTP/USB all append -XXYY from the
+                    public BD_ADDR (eFuse UID, same two bytes). Also set
+                    CONFIG_USBMTP_PRODUCTSTR in defconfig to the bare
+                    name (the MAC suffix is filled at boot). wrap
+                    /fw/<version>.bin uses PRODUCT_VERSION, not this.
+
+            config MYVENDOR_PRODUCT_VERSION
+                string "Product version (X.Y.Z)"
+                default "1.4.2"
+                ---help---
+                    MTP DeviceInfo version, OVNX header, and firmware slot
+                    filename. wrap reads this from defconfig. Bump here when
+                    shipping a new image; keep old /fw/*.bin on the device
+                    as rollback.
+
+            config MYVENDOR_HARDWARE_VERSION
+                string "Hardware version (X.Y.Z)"
+                default "1.0.0"
+                ---help---
+                    Board hardware revision reported over BLE Companion
+                    0xFF1A and used as the OTA manifest ?hw= query.  Bump
+                    when the PCB or BOM changes.
+
+            config MYVENDOR_MANUFACTURER
+                string "Manufacturer"
+                default "Helm"
+                ---help---
+                    MTP GetDeviceInfo manufacturer. Also set
+                    CONFIG_USBMTP_VENDORSTR in defconfig to the same string.
+
+            config MYVENDOR_FACTORY_MODE
+                bool "Factory firmware (force MTP+BLE, bitmap factory page)"
+                default n
+                ---help---
+                    nsh-factory image only. Do not read persist.usb.mtp
+                    or persist.bt.radio; force USB MTP and phone BLE on.
+                    Bicycle UI opens a dedicated factory page that uses
+                    compiled-in bitmap glyphs (no TTF preload, no LiveMap).
+
+            config MYVENDOR_SELFTEST
+                bool "Build the 'test' board self-test command (test lfs/led)"
+                default n
+                select NSH_DISABLE_TEST
+                ---help---
+                    Builds the 'test' NSH builtin command, a single dispatcher
+                    for the board self-test demos under boards/.../my_vendor/test
+                    (e.g. 'test lfs', 'test led', 'test sensor'). Replaces the
+                    NSH POSIX 'test' builtin. Run 'test' with no argument to
+                    list demos. Shell conditionals still use '['. Each demo is
+                    compiled in but only active when its dependencies are
+                    enabled.
+
+            config MYVENDOR_IDLE_STAT
+                bool "True CPU idle via up_idle WFI + DWT"
+                default y
+                select ARCH_IDLE_CUSTOM
+                ---help---
+                    Replace the empty ARM up_idle() loop with WFI and count
+                    DWT cycles as true idle. No background syslog; run
+                    "test idle" to compare true_idle%% with cpuload PID0.
+
+            config MYVENDOR_DVFS
+                bool "HCPU DVFS 72/96/144/240 MHz"
+                default y
+                ---help---
+                    Product governor, not Vela CONFIG_PM. Gears 72/96/144
+                    (S0) and 240 (S1). Auto ondemand from PID0 idle (ps
+                    IDLE). Charging (ETA9184 STAT low) pins 240; unplug
+                    or full releases it. MTP does not touch DVFS.
+                    boot/map/off still pin 240. Screen-on (awake) does not.
+                    DLL2 stays at 288 MHz so PSRAM/NAND keep running. Does
+                    not drop to 48/24 MHz.
+                    UI input immediately applies a short interactive floor;
+                    sustained load is still governed by PID0 idle.
+                    NSH: sys dvfs / ctl dvfs auto|72|96|144|240.
+
+            config MYVENDOR_DVFS_IDLE_UP
+                int "Step up if projected idle percent would fall below"
+                default 20
+                range 1 40
+                depends on MYVENDOR_DVFS
+                ---help---
+                    clock_cpuload PID0, same number as the ps IDLE column.
+                    UI latency needs more headroom than throughput-only
+                    workloads; 20 percent avoids waiting for saturation.
+
+            config MYVENDOR_DVFS_IDLE_DOWN
+                int "Step down only if lower gear keeps this idle percent"
+                default 30
+                range 5 60
+                depends on MYVENDOR_DVFS
+                ---help---
+                    Projected idle at the lower gear. Must be above IDLE_UP
+                    so adjacent gears do not bounce.
+
+            config MYVENDOR_DVFS_INTERACTIVE_MHZ
+                int "Short UI interaction frequency floor (MHz)"
+                default 144
+                range 72 240
+                depends on MYVENDOR_DVFS
+                ---help---
+                    Button activity immediately raises HCLK to at least this
+                    value. Non-gear values round up to 72/96/144/240.
+
+            config MYVENDOR_DVFS_INTERACTIVE_MS
+                int "UI interaction frequency floor duration (ms)"
+                default 1000
+                range 250 5000
+                depends on MYVENDOR_DVFS
+                ---help---
+                    Each input edge refreshes this deadline, covering both
+                    callback work and the following LVGL redraw.
+
+            config MYVENDOR_DVFS_DOWN_HOLD_MS
+                int "Stable lower-load time before one downshift (ms)"
+                default 2000
+                range 500 10000
+                depends on MYVENDOR_DVFS
+                ---help---
+                    Downshifts occur one gear at a time after the same lower
+                    target remains valid for this interval.
+
+            config MYVENDOR_WATCHDOG
+                bool "Start IWDT; reset if CPU or UI heartbeat stops"
+                default y
+                depends on WATCHDOG
+                depends on MYVENDOR_IDLE_STAT
+                ---help---
+                    bringup still only registers /dev/watchdog0 first. After
+                    board init this STARTs the hardware IWDT. High-priority
+                    iwdg_feed pets it only when up_idle() has run recently
+                    (or a worker such as MTP has posted a work beat) and
+                    (once bicycle UI is in its loop, or after the
+                    autostart grace) the UI thread has too. Either stall
+                    stops feeding so the chip resets. Not fed from SysTick.
+
+            if MYVENDOR_WATCHDOG
+
+            config MYVENDOR_WATCHDOG_TIMEOUT_MS
+                int "IWDT timeout milliseconds"
+                default 15000
+                range 2000 60000
+
+            config MYVENDOR_WATCHDOG_FEED_MS
+                int "Feeder period milliseconds"
+                default 2000
+                range 200 10000
+
+            config MYVENDOR_WATCHDOG_HEARTBEAT_MS
+                int "Max idle/work/UI heartbeat age milliseconds"
+                default 10000
+                range 500 30000
+
+            config MYVENDOR_WATCHDOG_UI_GRACE_MS
+                int "Wait for first UI beat when bicycle autostarts"
+                default 60000
+                range 5000 180000
+                depends on MYVENDOR_BICYCLE_AUTOSTART
+
+            endif
+
+            config MYVENDOR_COREDUMP
+                bool "Save crash register dump to /mnt/kv/coredump"
+                default y
+                select BOARD_CRASHDUMP_CUSTOM
+                ---help---
+                    Save the ARM register file (R0-R15, xPSR, BASEPRI,
+                    CONTROL, EXC_RETURN, SCB fault, FPU if present) as
+                    text under /mnt/kv/coredump/nNNN_YYYYMMDD_HHMMSS.txt.
+                    Written from the panic notifier (before dump_assert_info)
+                    and when the IWDT feeder stops petting. IRQ panics skip
+                    nxsched_foreach and use the schedmon snapshot. This is
+                    the register snapshot from a core dump, not a full ELF.
+
+            if MYVENDOR_COREDUMP
+            config MYVENDOR_COREDUMP_KEEP
+                int "Crash notes to keep"
+                default 10
+                range 2 32
+                ---help---
+                    Keep this many /mnt/kv/coredump/nNNN_*.txt files.
+                    Older notes are deleted when a new crash is saved, and on
+                    boot / periodically by `myvendor_coredump_prune()`.
+                    2026-09-25: default 20 -> 10, to match the diag side
+                    (`DIAGLOG_KEEP = 10`) as the user asked: keep 10 each.
+            endif
+
+            config MYVENDOR_SCHEDMON_LOG
+                bool "Scheduler snapshot dump every 15 s (noisy)"
+                default n
+                ---help---
+                    Print the periodic scheduler summary and the per-task
+                    list (pid/state/waitobj/waitdog/stack watermark) at
+                    DEBUG level every 15 s. Healthy output is ~20 identical
+                    lines that displace whatever the console is being used
+                    for. The same snapshot is embedded in every crash note,
+                    so leave this off unless the console trend itself is
+                    what is being investigated.
+
+            config MYVENDOR_CPULOAD_EXTCLK
+                bool "Accurate ps CPU%% via BTIM2 cpuload EXTCLK"
+                default y
+                depends on BSP_USING_BTIM1
+                select BSP_USING_BTIM2
+                ---help---
+                    Use BTIM2 (1 MHz) as asynchronous cpuload sample clock
+                    instead of the 10 ms system tick (SCHED_CPULOAD_SYSCLK).
+                    Requires in defconfig: SCHED_CPULOAD_EXTCLK, CPULOAD_PERIOD,
+                    CPULOAD_ENTROPY, SCHED_CPULOAD_TICKSPERSEC (not SYSCLK).
+                    BTIM1 remains /dev/timer0.
+
+            menuconfig MYVENDOR_TEST_APP
+                bool "Build 'test_app' launch-path demo"
+                default y
+                ---help---
+                    NSH builtin test_app (boards/.../my_vendor/test_app/).
+
+                    A) rcS + NSH (default):
+                       CONFIG_INIT_ENTRYPOINT="nsh_main"
+                       src/etc/init.d/rcS:  test_app rcs &
+                       Serial: rc echoes, nsh>, then
+                       "test_app: ... launch=rcs" every 2 s.
+
+                    B) Code launch (init entry, no NSH):
+                       CONFIG_INIT_ENTRYPOINT="test_app_main"
+                       # CONFIG_SYSTEM_NSH is not set
+                       Comment out "test_app rcs &" in rcS.
+
+                    Manual NSH:
+                       test_app manual
+                       test_app manual &
+                    Stop: ps  then  kill <pid>
+
+            if MYVENDOR_TEST_APP
+
+            config MYVENDOR_TEST_APP_PRIORITY
+                int "test_app task priority"
+                default 100
+
+            config MYVENDOR_TEST_APP_STACKSIZE
+                int "test_app stack size"
+                default 4096
+
+            endif
+
+            menuconfig MYVENDOR_BLE_TEST_APP
+                bool "Build 'ble_test' BLE GATT demo app"
+                default n
+                depends on BLUETOOTH_FRAMEWORK
+                depends on BLUETOOTH_BLE_SUPPORT
+                ---help---
+                    NSH command ble_test: enable BLE adapter, register a
+                    private GATT service (0xFF00), and start legacy advertising
+                    as "Vela-BT".  No pairing required for read 0xFF05 / write
+                    0xFF02.  Test with nRF Connect.
+
+            if MYVENDOR_BLE_TEST_APP
+
+            config MYVENDOR_BLE_TEST_APP_PRIORITY
+                int "ble_test task priority"
+                default 100
+
+            config MYVENDOR_BLE_TEST_APP_STACKSIZE
+                int "ble_test stack size (bytes)"
+                default 8192
+
+            endif
+
+            menuconfig MYVENDOR_BLE_COMPANION
+                bool "Build 'ble_companion' BLE Companion peripheral (0xFF10)"
+                default n
+                depends on BLUETOOTH_FRAMEWORK
+                depends on BLUETOOTH_BLE_SUPPORT
+                depends on BLUETOOTH_BLE_ADV
+                select BLUETOOTH_BLE_SCAN
+                ---help---
+                    NSH command ble_companion: advertise as
+                    "<PRODUCT_NAME>-XXXX" (LE address last two bytes) and
+                    serve the Companion GATT service 0xFF10 for the phone App.
+
+                    P0: Protocol Version 0xFF11, Device Status 0xFF12,
+                    Control 0xFF13, GNSS Fix 0xFF14.  P1: GATT FS 0xFF15/0xFF16
+                    plus Notification 0xFF17.  P2: Nav Route 0xFF19.
+                    Track Point 0xFF18 is still unused.  Observer scan
+                    receives HR/CSC/CPS advertisements together.
+
+                    Protocol: boards/.../include/companion_proto.h
+                    Spec: vendor/my_vendor/docs/ble/companion_impl_plan.md
+
+            if MYVENDOR_BLE_COMPANION
+
+            config MYVENDOR_BLE_COMPANION_PRIORITY
+                int "ble_companion task priority"
+                default 8
+                ---help---
+                    Must sit below CONFIG_BT_LONG_WQ_PRIO (10).  File I/O on
+                    this thread would otherwise starve the Bluetooth host
+                    workqueue.  See docs/ble/companion_bringup_notes.md.
+
+            config MYVENDOR_BLE_COMPANION_STACKSIZE
+                int "ble_companion stack size (bytes)"
+                default 12288
+
+            config MYVENDOR_BLE_COMPANION_AUTOSTART
+                bool "Start ble_companion automatically at boot"
+                default n
+                ---help---
+                    Register the intent to launch ble_companion.  With
+                    bicycle UI the task is spawned after splash/factory
+                    is on screen (plus 1.5 s) so LCPU RF calibration does
+                    not stretch the boot beep.  Headless boards spawn it
+                    from bringup.  See docs/ble/companion_impl_plan.md.
+
+            config MYVENDOR_BLE_COMPANION_ADV_INTERVAL_MS
+                int "Advertising interval (ms)"
+                default 200
+                range 20 10240
+                ---help---
+                    Lower means faster discovery and reconnect at the cost of
+                    current draw.  Rounded down to the 0.625 ms unit the
+                    controller uses.
+
+            config MYVENDOR_BLE_COMPANION_STORAGE_PATH
+                string "Transfer storage root"
+                default "/mnt/lfs"
+                ---help---
+                    Sandbox root for BLE FS and Classic SPP file manager.
+                    Paths that escape this prefix are rejected. VELA KVDB is
+                    /mnt/kv and is outside this sandbox. Product USB MTP uses
+                    /mnt/lfs/mtp (a subdirectory); BLE can stay on /mnt/lfs.
+
+            config MYVENDOR_BLE_COMPANION_DEBUG
+                bool "Verbose ble_companion logging"
+                default n
+                ---help---
+                    Log every Control and GNSS Fix write.  Noisy: the App
+                    pushes GNSS at 1-5 Hz.
+
+            endif
+
+            config MYVENDOR_BLE_LOG
+                bool "BLE HCI / companion heartbeat diagnostic logs"
+                default n
+                depends on BLUETOOTH
+                ---help---
+                    Extra INFO logs for HCI skip_sync, RX stall windows,
+                    adapter force-reset, companion heartbeat, advertising
+                    start failures, and diag unhealthy reasons.
+
+                    Independent of MYVENDOR_BLE_COMPANION_DEBUG (1-5 Hz
+                    GATT writes). Leave off for soak; enable when hunting
+                    BLE stalls or failed companion respawn.
+
+            menuconfig MYVENDOR_GPX
+                bool "GPX track encode/decode + record thread (gpx command)"
+                default y
+                select PTHREAD
+                ---help---
+                    Pure-C GPX writer/reader and a background recording thread
+                    (boards/.../my_vendor/gpx/). Independent of bicycle UI.
+
+                    NSH:
+                      gpx decode <file.gpx>
+                      gpx record <out.gpx> [seconds]
+
+            if MYVENDOR_GPX
+
+            config MYVENDOR_GPX_PRIORITY
+                int "gpx main task priority"
+                default 100
+
+            config MYVENDOR_GPX_STACKSIZE
+                int "gpx main task stack size (bytes)"
+                default 8192
+                ---help---
+                    NSH applet `gpx` 的栈。原为 4096：那个 applet 里有
+                    `char buf[512]` 的局部缓冲 + LFS 读写 + printf 路径，
+                    与 `ctl` 是同一类"深度吃栈"的形态（见 nsh/CMakeLists.txt
+                    顶部的"栈大小口径"一节）。栈是逐次分配、退出即释放。
+
+            config MYVENDOR_GPX_RECORD_STACKSIZE
+                int "gpx record thread stack size (bytes)"
+                default 8192
+
+            config MYVENDOR_GPX_DEFAULT_BATCH_SIZE
+                int "Default batch size N when start cfg omits batch_size"
+                default 32
+                ---help---
+                    Used when gpx_record_cfg.batch_size is 0. Queue depth
+                    defaults to ceil(N * 1.2) unless queue_depth is set at
+                    each gpx_record_start() call.
+
+            config MYVENDOR_GPX_EXAMPLE_STACKSIZE
+                int "gpx example record demo thread stack (bytes)"
+                default 8192
+
+            config MYVENDOR_GPX_EXAMPLE_PRIORITY
+                int "gpx example record demo thread priority"
+                default 100
+
+            config MYVENDOR_GPX_TRACK_DIR
+                string "Default directory for device-recorded GPX (record)"
+                default "/mnt/lfs/mtp/record"
+                ---help---
+                    Self-recorded GPX. Uploaded files go in
+                    /mnt/lfs/mtp/import. Both sit under the product MTP
+                    volume so Windows Explorer can copy them.
+
+            endif
+
+            choice MYVENDOR_MTP_BACKEND
+                prompt "MTP file transfer backend"
+                default MYVENDOR_MTP_SIMPLE
+                help
+                    Select how the board exposes LittleFS over USB MTP.
+                    "Simple" is a single-thread responder in board/mtp_simple
+                    (~8 KiB stack, no GLib).  "Full" uses external/mtp-responder.
+
+                config MYVENDOR_MTP_SIMPLE
+                    bool "Simple MTP (mtp_simple, recommended for LFS)"
+                    select USBDEV
+                    select USBMTP
+                    ---help---
+                        Lightweight mtp_simple app: one thread, direct /dev/mtp
+                        access, maps CONFIG_MYVENDOR_MTP_SIMPLE_STORAGE_PATH.
+
+                config MYVENDOR_MTP_RESPONDER_FULL
+                    bool "Full mtp-responder (external, legacy)"
+                    select MTP_RESPONDER
+                    ---help---
+                        Samsung-derived mtp_responder with GLib and large
+                        buffers.  Use only if mtp_simple lacks a feature you need.
+
+            endchoice
+
+            if MYVENDOR_MTP_SIMPLE
+
+            config MYVENDOR_MTP_SIMPLE_PRIORITY
+                int "mtp_simple task priority"
+                default 100
+
+            config MYVENDOR_MTP_SIMPLE_STACKSIZE
+                int "mtp_simple stack size (bytes)"
+                default 8192
+                ---help---
+                    原为 4096。mtp_simple 是**常驻**服务任务（不像 NSH applet
+                    那样进出即释放），它同时又是崩溃普查里的一族（n008：
+                    cfsr=0x8200、bfar=0x20080000 落在 RAM 里）。它要跑
+                    USB/MTP 协议栈 + LFS 读写 + 目录枚举，深度与 ctl 同类
+                    ⇒ 提到与 ble_companion 相同的 8192（见 nsh/CMakeLists.txt
+                    顶部的"栈大小口径"一节）。
+
+            config MYVENDOR_MTP_PSRAM_RESERVE_KB
+                int "PSRAM tail reserved for mtp_simple buffers (KiB)"
+                default 256
+                depends on BSP_USING_PSRAM
+                ---help---
+                    PSRAM_DATA 尾端专供 mtp_simple bump 分配（catalog / I/O /
+                    scratch 等，见 mtp_psram.c）。catalog 对象上限按此大小自动
+                    计算（约 (KB*1024 − 固定开销) / 每对象开销）。须与
+                    sifli_allocateheap.c 从 kumm 扣减的字节数一致。
+
+            config MYVENDOR_MTP_SIMPLE_STORAGE_PATH
+                string "LFS path exposed as the primary MTP volume"
+                default "/mnt/lfs/mtp"
+                ---help---
+                    Product firmware: /mnt/lfs/mtp so the host cannot see
+                    Track or other user LFS roots. Factory firmware overrides
+                    this to /mnt/lfs (full user volume) and adds /mnt/kv and
+                    /mnt/fat via EXTRA_PATHS. Must stay under the user
+                    LittleFS; KVDB is /mnt/kv.
+
+            config MYVENDOR_MTP_SIMPLE_PERCEIVED_TYPE
+                hex "Windows device icon type (MTP 0xD407)"
+                default 0x3
+                ---help---
+                    WPD perceived device type for Explorer icon:
+                    0=generic, 1=camera, 2=media player, 3=phone,
+                    4=video, 5=PDA, 6=audio recorder.
+                    Values are also in mtp_names.c for direct edit.
+
+            config MYVENDOR_MTP_SIMPLE_SERIAL
+                string "MTP serial number string"
+                default "00000001"
+
+            config MYVENDOR_MTP_SIMPLE_MTP_EXTENSION
+                string "MTP extension version string"
+                default "microsoft.com: 1.0"
+
+            config MYVENDOR_MTP_SIMPLE_STORAGE_DESC
+                string "MTP storage description (GetStorageInfo)"
+                default "LittleFS"
+
+            config MYVENDOR_MTP_SIMPLE_VOLUME_LABEL
+                string "MTP volume label (GetStorageInfo)"
+                default "LFS"
+
+            config MYVENDOR_MTP_SIMPLE_EXTRA_PATHS
+                string "Extra MTP volumes (comma-separated mount paths)"
+                default ""
+                ---help---
+                    Primary volume is MYVENDOR_MTP_SIMPLE_STORAGE_PATH.
+                    Factory example: "/mnt/kv,/mnt/fat" plus
+                    STORAGE_PATH=/mnt/lfs exposes three volumes.
+                    Product leaves this empty (only /mnt/lfs/mtp).
+
+            config MYVENDOR_MTP_SIMPLE_AUTOSTART
+                bool "Start mtp_simple from board bringup"
+                default y
+                ---help---
+                    task_spawn mtp_simple after USB MTP class driver init,
+                    then transfer_begin() so the host can open the volume
+                    without bicycle.  Product firmware skips this when
+                    persist.usb.mtp is 0 (NSH: ctl mtp off). Factory
+                    firmware never reads that key and always starts MTP.
+                    Optional MTP opcodes/features are trimmed in
+                    boards/.../mtp_simple/mtp_features.h.
+
+            endif
+
+            config MYVENDOR_LVGL_STACK_GATE
+                bool
+                default y
+                ---help---
+                    When y, LVGL is built from vendor/my_vendor/apps/graphics/lvgl
+                    under MYVENDOR_LVGL_STACK (not apps/graphics/lvgl).
+
+            menuconfig MYVENDOR_LVGL_STACK
+                bool "Enable LVGL graphics stack (LVGL lib + optional bicycle UI)"
+                default y
+                imply GRAPHICS_LVGL
+                select LV_USE_NUTTX
+                select LV_USE_NUTTX_CUSTOM_INIT
+                select MYVENDOR_LCD_DISP
+                ---help---
+                    Master switch for the LVGL library on this board.
+                    Builds liblvgl from vendor/my_vendor/apps/graphics/lvgl
+                    (not openvela apps/graphics/lvgl). When disabled, Kconfig
+                    hides LVGL options and MYVENDOR_BICYCLE; the image will not
+                    link liblvgl or bicycle.
+
+                    Display: myvendor_lcd_disp on /dev/lcd0 — driver-owned N-row
+                    strip double buffers + async PUTAREA worker. App registers
+                    flush-done callback (no /dev/fb0, no kernel framebuffer).
+
+                    Driver-only profile: configs/nsh-driver/defconfig sets this
+                    to n. Full UI profile: configs/nsh/defconfig sets this to y.
+
+                    Test display without LVGL: NSH "test screen" (needs VIDEO_FB).
+
+            if MYVENDOR_LVGL_STACK
+
+            menuconfig MYVENDOR_LCD_DISP
+                bool "myvendor_lcd_disp async LCD flush driver"
+                default y
+                depends on MYVENDOR_LVGL_STACK
+                ---help---
+                    Strip double buffers live in myvendor_lcd_disp (outside App/).
+                    LVGL uses lv_myvendor_lcd + lv_nuttx_init_custom. Flush
+                    completion is delivered via myvendor_lcd_disp_register_done_cb().
+
+            if MYVENDOR_LCD_DISP
+
+            config MYVENDOR_LCD_DISP_DEBUG
+                bool "Log LCD async flush stats ([lcd_flush] every 5 s)"
+                default n
+                depends on MYVENDOR_LCD_DISP
+                ---help---
+                    Periodic syslog: submit ok/busy/err, worker done, flush_ready,
+                    wait max ms, timeouts. Enable for soak tests.
+
+            config MYVENDOR_LVGL_SIFLI_EPIC
+                bool "Enable SiFli EPIC 2D GPU for LVGL draw"
+                default n
+                depends on MYVENDOR_LCD_DISP
+                select LV_USE_SIFLI_EPIC
+                ---help---
+                    Hardware-accelerate fill, blend, image, and label tasks via
+                    SF32 EPIC. LVGL strip draw buffers live in SRAM (lv_myvendor_lcd).
+                    By default EPIC runs on the UI thread (LV_OS_NONE); enable
+                    LV_OS_PTHREAD + LV_USE_SIFLI_EPIC_DRAW_THREAD for a separate
+                    epic_draw thread.
+
+            config MYVENDOR_LCD_DISP_STRIP_ROWS
+                int "Strip buffer height (rows per draw buffer)"
+                default 160
+                range 8 160
+                ---help---
+                    Two LVGL draw buffers of hor_res * N * 2 bytes (RGB565) in
+                    fixed HCPU SRAM .bss arrays. 160 rows @ 240 wide ~ 75 KiB
+                    per buffer (~150 KiB SRAM total). 60 rows ~ 28 KiB per
+                    buffer. They are never allocated from Umem/PSRAM.
+
+            config MYVENDOR_LCD_DISP_WORKER_STACKSIZE
+                int "ui_flush pthread stack (bytes)"
+                default 2048
+                range 1024 4096
+                ---help---
+                    Stack for the ui_flush worker (ioctl PUTAREA only). Default
+                    task stack (16 KiB) is unnecessary; ~1.3 KiB typical peak
+                    with CONFIG_STACK_COLORATION. Increase if FILLED exceeds 70%.
+
+            endif
+            endif
+
+            config MYVENDOR_SYSTEM_VECTOR_FONT
+                bool "Preload system TTF to PSRAM (FreeType for LVGL)"
+                default y
+                depends on MYVENDOR_LVGL_STACK
+                select LV_USE_FREETYPE
+                select LIB_FREETYPE
+                select LV_USE_FS_MEMFS
+                ---help---
+                    Links myvendor_system_font.c into liblvgl. TTF is read from
+                    /mnt/fat/fonts/ into PSRAM at process start (before bicycle).
+                    FreeType opens the RAM buffer with FT_New_Memory_Face
+                    (same as SiFli SDK), so drawing does not hit the card.
+
+            config MYVENDOR_LVGL_PSRAM_MALLOC
+                bool "Route LVGL lv_malloc to BoardPSRAM pool"
+                default y
+                depends on MYVENDOR_LVGL_STACK
+                depends on MYVENDOR_BOARD_PSRAM_POOL_KB > 0
+                # LV_USE_CLIB_* live inside LVGL "choice" blocks, where select
+                # has no effect (Kconfig silently drops it and warns).  Require
+                # them instead, so flipping the LVGL malloc source away from
+                # CLIB disables this symbol rather than silently keeping it on
+                # with the 64 KiB TLSF pool.  The defconfig pins the choice.
+                depends on LV_USE_CLIB_MALLOC
+                depends on LV_USE_CLIB_STRING
+                depends on LV_USE_CLIB_SPRINTF
+                ---help---
+                    lv_malloc/lv_free use board_malloc_psram() (same heap as
+                    vector map canvas/tile cache). Reduces Umem SRAM pressure.
+                    Requires LV_USE_CLIB_MALLOC (not the 64 KiB TLSF pool).
+
+            config MYVENDOR_SYSTEM_FONT_DIR
+                string "System TTF directory on the FAT volume"
+                default "/mnt/fat/fonts"
+                depends on MYVENDOR_SYSTEM_VECTOR_FONT
+
+            config MYVENDOR_SYSTEM_FONT_FILE
+                string "System TTF filename"
+                default "MiSans-Medium.subset.ttf"
+                depends on MYVENDOR_SYSTEM_VECTOR_FONT
+
+            menuconfig MYVENDOR_BICYCLE
+                bool "Build NSH builtin 'bicycle' (X-TRACK UI on /dev/lcd0)"
+                default n
+                depends on MYVENDOR_LVGL_STACK
+                select HAVE_CXX
+                # LV_USE_CLIB_* / LIBCXX are "choice" symbols, so `select` on
+                # them has no effect (Kconfig drops it with a warning) -- that is
+                # why the old `select LIBCXX` line was removed.
+                #
+                # Do NOT re-add `depends on LIBCXX` here: the C++ Library
+                # <choice> depends on HAVE_CXX, HAVE_CXX is selected *by this
+                # very symbol*, so requiring LIBCXX closes a Kconfig dependency
+                # loop ("Dependency loop" from olddefconfig, breaks a fresh
+                # factory configure).
+                #
+                # This symbol therefore does NOT by itself guarantee libc++;
+                # the board defconfig pins CONFIG_LIBCXX=y.  If that ever drifts,
+                # the failure surfaces as a C++ link error, not a Kconfig error.
+                select LIB_PNG
+                select LIB_ZLIB
+                select NETUTILS_CJSON
+                select LV_FONT_MONTSERRAT_14
+                select LV_FONT_MONTSERRAT_16
+                select LV_FONT_MONTSERRAT_20
+                select LV_FONT_MONTSERRAT_24
+                select LV_FONT_MONTSERRAT_26
+                select LV_FONT_MONTSERRAT_28
+                select LV_FONT_MONTSERRAT_32
+                select LV_FONT_MONTSERRAT_36
+                select LV_FONT_MONTSERRAT_40
+                select LV_FONT_MONTSERRAT_48
+                ---help---
+                    Compile the bicycle X-TRACK fork (boards/.../my_vendor/bicycle/).
+                    LVGL uses myvendor_lcd_disp on /dev/lcd0: partial double
+                    buffers (see MYVENDOR_LCD_DISP_STRIP_ROWS), flush via worker
+                    + LCDDEVIO_PUTAREA (SPI2 DMA underneath).
+                    Assets on LittleFS /mnt/lfs (FS_REGION, NAND or SD/eMMC); edit
+                    boards/.../my_vendor/mkfs/, build with build_fs_root.sh, flash fs_root.bin.
+                    NSH: bicycle &  (see rcS when MYVENDOR_BICYCLE_AUTOSTART=y)
+
+            if MYVENDOR_BICYCLE
+
+            config MYVENDOR_BICYCLE_AUTOSTART
+                bool "Autostart bicycle UI after LCD init"
+                default n
+                ---help---
+                    Spawn the bicycle map/UI task from board lcd_bringup after
+                    /dev/lcd0 is ready.  When n, NSH stays headless; start
+                    the UI later with:  bicycle &
+
+            config MYVENDOR_BICYCLE_STACKSIZE
+                int "bicycle stack size"
+                default 34816
+                ---help---
+                    NuttX carves the argv and TLS frames (96 bytes) off the
+                    top of a task's stack, and LVGL checks at init that the
+                    usable stack is at least 32768 bytes when freetype or
+                    thorvg is enabled.  Leave that headroom here, otherwise
+                    boot logs an LVGL "Stack size is too small" error.
+                    2026-09-25: default 16384 -> 34816.
+
+            config MYVENDOR_BICYCLE_PRIORITY
+                int "bicycle task priority"
+                default 100
+
+            config MYVENDOR_BICYCLE_GNSS_GPX_SIM
+                bool "Replay GNSS from /mnt/lfs/Track/test.gpx (30 km/h)"
+                default n
+                depends on BOARD_L96_GNSS
+                ---help---
+                    Use the GPX simulator HAL instead of the L96 UART driver.
+                    Indoor bench: map and sport stats follow test.gpx at fixed speed.
+                    Disable to use real L96-M33 NMEA on /dev/ttyS0.
+
+            config MYVENDOR_BICYCLE_C_UI
+                bool "C map UI (vmap C + LVGL9 bindings, no X-TRACK)"
+                default n
+                ---help---
+                    Build bicycle with pure-C entry (c/bicycle_c_main.c),
+                    C vmap rasterizer, and lv_subject widget bindings.
+                    Skips PageManager / DataBroker / C++ MVP stack.
+
+            config MYVENDOR_BICYCLE_INVAL_PROBE
+                bool "Log LVGL dirty-rect / flush sources (debug)"
+                default n
+                depends on MYVENDOR_BICYCLE_C_UI
+                ---help---
+                    Print [inval] lines for lv_obj_invalidate, display dirty
+                    areas, and FLUSH_START (real LCD pushes). Use syslog /
+                    LVGL log on serial. Disable for production soak tests.
+
+            config MYVENDOR_BICYCLE_HANDLER_STAT
+                bool "Log lv_timer_handler duration (5 s summary)"
+                default n
+                depends on MYVENDOR_BICYCLE_C_UI
+                ---help---
+                    Every 5 s print real handler call count, min/avg/max
+                    microseconds, estimated handler CPU%, and active LVGL timers.
+
+            config MYVENDOR_BICYCLE_C_DEBUG
+                bool "Log C UI soak counters ([bicycle] every 5 s)"
+                default n
+                depends on MYVENDOR_BICYCLE_C_UI
+                ---help---
+                    Periodic syslog: main-loop Hz, GPX ticks, track push/draw/skip,
+                    map pan vs full render, lap events, point counts, revisions.
+                    Use with HANDLER_STAT and INVAL_PROBE when chasing freezes.
+
+            config MYVENDOR_VMAP_TILE_CACHE_KB
+                int "Vector map tile cache arena (KiB)"
+                default 2048
+                depends on BSP_USING_PSRAM
+                ---help---
+                    Fixed BoardPSRAM arena for cached .vt tile blobs keyed by
+                    (cityId, z, x, y). Separate from canvas/render buffers.
+                    Increase MYVENDOR_BOARD_PSRAM_POOL_KB accordingly.
+
+            config MYVENDOR_VMAP_VPK_HEAP_KB
+                int "Vector map cell vpk RAM heap (KiB)"
+                default 1024
+                depends on BSP_USING_PSRAM
+                ---help---
+                    Dedicated BoardPSRAM heap that caches whole cell vpk files
+                    so tiles, graphs and portals are not re-read from flash.
+                    LRU drops the oldest unused file when a new one does not fit.
+                    Increase MYVENDOR_BOARD_PSRAM_POOL_KB accordingly.
+
+            config MYVENDOR_VMAP_TRACK_ARENA_KB
+                int "Track overlay arena in BoardPSRAM (KiB)"
+                default 1024
+                depends on MYVENDOR_BICYCLE_C_UI && BSP_USING_PSRAM
+                ---help---
+                    Fixed BoardPSRAM bump arena for speed-colored track
+                    points and draw samples (on-screen lap polyline).
+                    bicycle_config.h sizes this for BICYCLE_MAX_SESSION_KM
+                    (default 150 km @ 3 m spacing ≈ 595 KiB + slack).
+                    Runtime uses max(Kconfig, bicycle_config_track_arena_bytes()).
+                    Sum with tile cache + canvas within MYVENDOR_BOARD_PSRAM_POOL_KB.
+
+            config MYVENDOR_VMAP_CANVAS_MARGIN
+                int "Vector map canvas pan margin (pixels per edge)"
+                default 192
+                range 96 256
+                depends on BSP_USING_PSRAM
+                ---help---
+                    Overscan around the visible viewport: the map can pan this
+                    many pixels by translating the canvas before a full re-render.
+                    RGB565 canvas size is (viewW + 2*margin) x (viewH + 2*margin).
+                    On 240x320, margin 144 ~ 624 KiB canvas; 192 ~ 858 KiB (+231 KiB);
+                    256 ~ 1.2 MiB. Uses BoardPSRAM via vmap_malloc.
+
+            endif
+
+            menuconfig MYVENDOR_LVGL_BENCH
+                bool "Build NSH builtin 'lvgl_bench' (LVGL benchmark demo)"
+                default n
+                depends on MYVENDOR_LVGL_STACK
+                select LV_USE_DEMO_WIDGETS
+                select LV_USE_DEMO_BENCHMARK
+                select LV_FONT_MONTSERRAT_14
+                ---help---
+                    Official lv_demo_benchmark on /dev/lcd0 (myvendor_lcd_disp
+                    strip double buffers). NSH: lvgl_bench
+                    Do not run while bicycle (or another LVGL app) is active.
+                    Serial prints CSV summary when all scenes finish (needs
+                    MYVENDOR_LVGL_BENCH_PERF_MONITOR).
+
+            if MYVENDOR_LVGL_BENCH
+
+            config MYVENDOR_LVGL_BENCH_PERF_MONITOR
+                bool "Enable LV_USE_PERF_MONITOR (FPS/CPU overlay + CSV stats)"
+                default n
+                select LV_USE_SYSMON
+                select LV_USE_PERF_MONITOR
+                ---help---
+                    When enabled: 300 ms sysmon timer, on-screen perf title,
+                    and per-scene CPU/FPS/flush stats in the summary CSV.
+                    Disable to reduce idle CPU (scenes still run; summary N/A).
+
+            config MYVENDOR_LVGL_BENCH_STACKSIZE
+                int "lvgl_bench stack size"
+                default 49152
+
+            config MYVENDOR_LVGL_BENCH_PRIORITY
+                int "lvgl_bench task priority"
+                default 100
+
+            endif
+
+            menuconfig BSP_ENABLE_MPI3
+                bool "MPI Controller 3 Enable"
+                default n
+                if BSP_ENABLE_MPI3
+                    config BSP_ENABLE_QSPI3
+                        bool 
+                        default y
+                    choice
+                        prompt "MPI Mode"
+                        default BSP_MPI3_MODE_0
+
+                        config BSP_MPI3_MODE_0
+                            bool "NOR"
+                        config BSP_MPI3_MODE_1
+                            bool "NAND"
+                        config BSP_MPI3_MODE_2
+                            bool "PSRAM"
+                        config BSP_MPI3_MODE_3
+                            bool "OPSRAM"
+                        config BSP_MPI3_MODE_4
+                            bool "HPSRAM"
+                        config BSP_MPI3_MODE_5
+                            bool "LEGACY_PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI3_MODE
+                        int
+                        default 0 if BSP_MPI3_MODE_0
+                        default 1 if BSP_MPI3_MODE_1
+                        default 2 if BSP_MPI3_MODE_2
+                        default 3 if BSP_MPI3_MODE_3
+                        default 4 if BSP_MPI3_MODE_4
+                        default 5 if BSP_MPI3_MODE_5
+
+                    if BSP_MPI3_MODE_0
+                        config BSP_USING_NOR_FLASH3
+                            bool
+                            default y 
+                        config BSP_QSPI3_USING_DMA
+                            bool 
+                            default y
+                        config BSP_MPI3_EN_DTR
+                            bool "Enable DTR mode"
+                            default n
+                    endif
+                    if BSP_MPI3_MODE_1
+                        config BSP_USING_NAND_FLASH3
+                            bool
+                            default y 
+                        config BSP_QSPI3_USING_DMA
+                            bool 
+                            default y
+                    endif
+                    if BSP_MPI3_MODE_2
+                        config BSP_USING_PSRAM3
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif     
+                    if BSP_MPI3_MODE_3
+                        config BSP_USING_PSRAM3
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI3_MODE_4
+                        config BSP_USING_PSRAM3
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI3_MODE_5
+                        config BSP_USING_PSRAM3
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI3_MEM_SIZE
+                        int "MPI3 Mem Size (MB)"
+                        default 32
+                endif
+            
+            menuconfig BSP_ENABLE_MPI4
+                bool "MPI Controller 4 Enable"
+                default n
+                depends on SOC_SF32LB58X
+                if BSP_ENABLE_MPI4
+                    config BSP_ENABLE_QSPI4
+                        bool 
+                        default y
+                    choice
+                        prompt "MPI Mode"
+                        default BSP_MPI4_MODE_0
+
+                        config BSP_MPI4_MODE_0
+                            bool "NOR"
+                        config BSP_MPI4_MODE_1
+                            bool "NAND"
+                        config BSP_MPI4_MODE_2
+                            bool "PSRAM"
+                        config BSP_MPI4_MODE_3
+                            bool "OPSRAM"
+                        config BSP_MPI4_MODE_4
+                            bool "HPSRAM"
+                        config BSP_MPI4_MODE_5
+                            bool "LEGACY_PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI4_MODE
+                        int
+                        default 0 if BSP_MPI4_MODE_0
+                        default 1 if BSP_MPI4_MODE_1
+                        default 2 if BSP_MPI4_MODE_2
+                        default 3 if BSP_MPI4_MODE_3
+                        default 4 if BSP_MPI4_MODE_4
+                        default 5 if BSP_MPI4_MODE_5
+
+                    if BSP_MPI4_MODE_0
+                        config BSP_USING_NOR_FLASH4
+                            bool
+                            default y 
+                        config BSP_QSPI4_USING_DMA
+                            bool 
+                            default y
+                        config BSP_MPI4_EN_DTR
+                            bool "Enable DTR mode"
+                            default n
+                    endif
+                    if BSP_MPI4_MODE_1
+                        config BSP_USING_NAND_FLASH4
+                            bool
+                            default y 
+                        config BSP_QSPI4_USING_DMA
+                            bool 
+                            default y
+                    endif
+                    if BSP_MPI4_MODE_2
+                        config BSP_USING_PSRAM4
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI4_MODE_3
+                        config BSP_USING_PSRAM4
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI4_MODE_4
+                        config BSP_USING_PSRAM4
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI4_MODE_5
+                        config BSP_USING_PSRAM4
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI4_MEM_SIZE
+                        int "MPI4 Mem Size (MB)"
+                        default 4
+                endif
+            menuconfig BSP_ENABLE_MPI5
+                bool "MPI Controller 5 Enable"
+                default y
+                if BSP_ENABLE_MPI5
+                    config BSP_ENABLE_QSPI5
+                        bool 
+                        default y
+                    choice
+                        prompt "MPI Mode"
+                        default BSP_MPI5_MODE_0
+
+                        config BSP_MPI5_MODE_0
+                            bool "NOR"
+                        config BSP_MPI5_MODE_1
+                            bool "NAND"
+                        config BSP_MPI5_MODE_2
+                            bool "PSRAM"
+                        config BSP_MPI5_MODE_3
+                            bool "OPSRAM"
+                        config BSP_MPI5_MODE_4
+                            bool "OPSRAM"
+                        config BSP_MPI5_MODE_5
+                            bool "LEGACY_PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI5_MODE
+                        int
+                        default 0 if BSP_MPI5_MODE_0
+                        default 1 if BSP_MPI5_MODE_1
+                        default 2 if BSP_MPI5_MODE_2
+                        default 3 if BSP_MPI5_MODE_3
+                        default 4 if BSP_MPI5_MODE_4
+                        default 5 if BSP_MPI5_MODE_5
+
+                    if BSP_MPI5_MODE_0
+                        config BSP_USING_NOR_FLASH5
+                            bool
+                            default y 
+                        config BSP_QSPI5_USING_DMA
+                            bool 
+                            default y
+                        config BSP_MPI5_EN_DTR
+                            bool "Enable DTR mode"
+                            default n
+                    endif
+                    if BSP_MPI5_MODE_1
+                        config BSP_USING_NAND_FLASH5
+                            bool
+                            default y 
+                        config BSP_QSPI5_USING_DMA
+                            bool 
+                            default y
+                    endif
+                    if BSP_MPI5_MODE_2
+                        config BSP_USING_PSRAM5
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI5_MODE_3
+                        config BSP_USING_PSRAM5
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI5_MODE_4
+                        config BSP_USING_PSRAM5
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    if BSP_MPI5_MODE_5
+                        config BSP_USING_PSRAM5
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI5_MEM_SIZE
+                        int "MPI5 Mem Size (MB)"
+                        default 4
+                endif
+        endif
+
+    menuconfig BSP_USING_QSPI
+        bool "Enable QSPI"
+        depends on SOC_SF32LB55X
+        default y
+
+        config BSP_USING_SPI_FLASH
+            bool "Enable QSPI Driver"
+            depends on BSP_USING_QSPI
+            default y
+
+        if BSP_USING_QSPI
+            menuconfig BSP_ENABLE_QSPI1
+                bool "QSPI Controller 1 Enable"
+                default y
+                if BSP_ENABLE_QSPI1 = 0
+                    config BSP_QSPI1_MEM_SIZE
+                        depends on BSP_USING_BOARD_EC_SS6600A0
+                        int 
+                        default 0
+                endif
+                if BSP_ENABLE_QSPI1
+                    config BSP_QSPI1_USING_DMA
+                        bool 
+                        default y
+                    config BSP_QSPI1_MODE
+                        int 
+                        default 0
+                    if LB551_U4O5 || HDK_U4O5
+                        config BSP_QSPI1_MEM_SIZE
+                            int 
+                            default 4
+                    endif
+                    if LB551_U8N5 || HDK_U8N5 || BSP_USING_BOARD_EC_SS6600A9
+                        config BSP_QSPI1_MEM_SIZE
+                            int 
+                            default 8
+                    endif
+                    if !LB551_U4O5 && !LB551_U8N5 && !HDK_U4O5 && !HDK_U8N5 && !BSP_USING_BOARD_EC_SS6600A9
+                        config BSP_QSPI1_MEM_SIZE
+                            int 
+                            default 4
+                    endif
+
+                    config BSP_QSPI1_CHIP_ID
+                        int "QSPI1 Manul & Device ID"
+                        default 0
+                endif
+
+            menuconfig BSP_ENABLE_QSPI2
+                bool "QSPI Controller 2 Enable"
+                default n
+                if BSP_ENABLE_QSPI2
+                    config BSP_QSPI2_USING_DMA
+                        bool 
+                        default y
+                    choice
+                        prompt "QSPI Mode"
+                        default BSP_QSPI2_MODE_0
+
+                        config BSP_QSPI2_MODE_0
+                            bool "NOR"
+                        config BSP_QSPI2_MODE_1
+                            bool "NAND"
+                        config BSP_QSPI2_MODE_2
+                            bool "PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI2_MODE
+                        int
+                        default 0 if BSP_QSPI2_MODE_0
+                        default 1 if BSP_QSPI2_MODE_1
+                        default 2 if BSP_QSPI2_MODE_2
+                        default 3 if BSP_QSPI2_MODE_3
+
+                    if BSP_QSPI2_MODE_2
+                        config BSP_USING_PSRAM2
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI2_MEM_SIZE
+                        int "QSPI2 Mem Size (MB)"
+                        default 32
+                    config BSP_QSPI2_CHIP_ID
+                        int "QSPI2 Manul & Device ID"
+                        default 0
+                    config BSP_QSPI2_DUAL_CHIP
+                        bool "Dual flash chip on QSPI2"
+                        default n
+                endif
+
+            menuconfig BSP_ENABLE_QSPI3
+                bool "QSPI Controller 3 Enable"
+                default n
+                if BSP_ENABLE_QSPI3
+                    config BSP_QSPI3_USING_DMA
+                        bool 
+                        default y
+                    choice
+                        prompt "QSPI Mode"
+                        default BSP_QSPI3_MODE_0
+
+                        config BSP_QSPI3_MODE_0
+                            bool "NOR"
+                        config BSP_QSPI3_MODE_1
+                            bool "NAND"
+                        config BSP_QSPI3_MODE_2
+                            bool "PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI3_MODE
+                        int
+                        default 0 if BSP_QSPI3_MODE_0
+                        default 1 if BSP_QSPI3_MODE_1
+                        default 2 if BSP_QSPI3_MODE_2
+                        default 3 if BSP_QSPI3_MODE_3
+
+                    if BSP_QSPI3_MODE_2
+                        config BSP_USING_PSRAM3
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI3_MEM_SIZE
+                        int "QSPI3 Mem Size (MB)"
+                        default 32
+                    config BSP_QSPI3_CHIP_ID
+                        int "QSPI3 Manul & Device ID"
+                        default 0
+                    config BSP_QSPI3_DUAL_CHIP
+                        bool "Dual flash chip on QSPI3"
+                        default n
+                endif
+            
+            menuconfig BSP_ENABLE_QSPI4
+                bool "QSPI Controller 4 Enable"
+                default n
+                if BSP_ENABLE_QSPI4
+                    config BSP_QSPI4_USING_DMA
+                        bool 
+                        default y
+                    choice
+                        prompt "QSPI Mode"
+                        default BSP_QSPI4_MODE_0
+
+                        config BSP_QSPI4_MODE_0
+                            bool "NOR"
+                        config BSP_QSPI4_MODE_1
+                            bool "NAND"
+                        config BSP_QSPI4_MODE_2
+                            bool "PSRAM"
+                    endchoice    
+
+                    config BSP_QSPI4_MODE
+                        int
+                        default 0 if BSP_QSPI4_MODE_0
+                        default 1 if BSP_QSPI4_MODE_1
+                        default 2 if BSP_QSPI4_MODE_2
+                        default 3 if BSP_QSPI4_MODE_3
+
+                    if BSP_QSPI4_MODE_2
+                        config BSP_USING_PSRAM4
+                            bool
+                            default y 
+                            select BSP_USING_PSRAM
+                    endif
+                    config BSP_QSPI4_MEM_SIZE
+                        int "QSPI4 Mem Size (MB)"
+                        default 32
+                    config BSP_QSPI4_CHIP_ID
+                        int "QSPI4 Manul & Device ID"
+                        default 0
+                    config BSP_QSPI4_DUAL_CHIP
+                        bool "Dual flash chip on QSPI4"
+                        default n
+                endif             
+        endif
+    config BSP_USING_EXT_DMA
+        bool "Enable ext dma"
+        default y
+
+    config BSP_USING_HW_AES
+        bool "Enable hardware AES encryption/decryption"
+        depends on BF0_HCPU
+        default y
+
+    config BSP_USING_PSRAM
+        bool 
+        default n
+
+    config BSP_USING_PSRAM0
+        bool "Enable OPI PSRAM"
+        default n
+        depends on BF0_HCPU && SOC_SF32LB55X
+        select BSP_USING_PSRAM
+        if BSP_USING_PSRAM && SOC_SF32LB55X
+            config PSRAM_FULL_SIZE
+                int "PSRAM full chip size(MB)"
+                default 4
+            config BSP_USING_EXT_PSRAM
+                bool "Use External PSRAM"
+                default n
+            config BSP_USING_XCCELA_PSRAM
+                bool "Use Xceela PSRAM"
+                default n
+            config BSP_USING_DUAL_PSRAM
+                bool "Use Dual PSRAM"
+                default n
+             if BSP_USING_EXT_DMA
+                config PSRAM_USING_DMA
+                bool "PSRAM use DMA"
+                default n
+            endif
+        endif
+    config BSP_USING_USBD
+        bool "Enable USB Device"
+        select RT_USING_USB_DEVICE
+        default n
+        
+    config BSP_USING_USBH
+        bool "Enable USB Host"
+        select RT_USING_USB_HOST
+        default n
+        
+    config BSP_USING_ONCHIP_RTC
+        bool "Enable RTC"
+        select RT_USING_RTC
+        select RT_USING_LIBC
+        default n
+
+    config BSP_USING_WDT
+        bool "Enable Watchdog Timer"
+        select RT_USING_WDT
+        default n
+        if BSP_USING_WDT                    
+            config BSP_WDT_TIMEOUT
+            int "Watchdog Timer timeout in seconds"
+            default 10
+        endif
+        
+    config BSP_USING_EPIC
+        bool "Enable EPIC"
+        select RT_USING_EPIC
+        default n 
+
+    config BSP_USING_LCDC
+        bool "Enable LCDC"
+        select RT_USING_LCDC
+        default n 
+
+    config BSP_USING_TOUCHD
+        bool "Enable touch device"
+        default n
+
+    config BSP_USING_CMSIS_NN
+        bool "Enable CMSIS NN"
+        default n
+
+    config BSP_USING_NN_ACC
+        bool "Enable NN ACC"
+        default n
+
+    menuconfig BSP_USING_HWMAILBOX
+        bool "Enable HwMailbox"
+        depends on SOC_SF32LB55X
+        default n
+        select RT_USING_HWMAILBOX
+        if BSP_USING_HWMAILBOX                    
+            config BSP_USING_MB_L2H_CH1
+                bool "Enable Mailbox L2H Channel1"
+                default n
+                help 
+                    Mailbox from LCPU to HCPU, channel 1
+            config BSP_USING_MB_L2H_CH2
+                bool "Enable Mailbox L2H Channel2"
+                default n
+                help 
+                    Mailbox from LCPU to HCPU, channel 2
+            config BSP_USING_MB_H2L_CH1
+                bool "Enable Mailbox H2L Channel1"
+                default n
+                help 
+                    Mailbox from HCPU to LCPU, channel 1
+            config BSP_USING_MB_H2L_CH2
+                bool "Enable Mailbox H2L Channel2"
+                default n
+                help 
+                    Mailbox from HCPU to LCPU, channel 2
+            if BF0_HCPU       
+                config BSP_USING_BIDIR_MB1
+                    bool "Enable Bidirectional Mailbox Channel1"
+                    default n
+                    select BSP_USING_MB_H2L_CH1
+                    select BSP_USING_MB_L2H_CH1
+                    help
+                        Mailbox between HCPU and LCPU, channel 1
+                config BSP_USING_BIDIR_MB3
+                    bool "Enable Bidirectional Mailbox Channel2"
+                    default n
+                    select BSP_USING_MB_H2L_CH2
+                    select BSP_USING_MB_L2H_CH2
+                    help
+                        Mailbox between HCPU and LCPU, channel 2
+            endif
+            if BF0_LCPU
+                config BSP_USING_BIDIR_MB1
+                    bool "Enable Bidirectional Mailbox Channel1"
+                    default n
+                    select BSP_USING_MB_L2H_CH1
+                    select BSP_USING_MB_H2L_CH1
+                    help 
+                        Mailbox between LCPU and HCPU, channel 1
+                config BSP_USING_BIDIR_MB3
+                    bool "Enable Bidirectional Mailbox Channel2"
+                    default n
+                    select BSP_USING_MB_L2H_CH2
+                    select BSP_USING_MB_H2L_CH2
+                    help 
+                        Mailbox between LCPU and HCPU, channel 2    
+            endif
+        endif
+    menuconfig BSP_USING_I2S
+        bool "Enable I2S audio driver"
+        select RT_USING_AUDIO
+        select BSP_USING_DMA
+        default n
+        if BSP_USING_I2S
+            config BSP_ENABLE_I2S_MIC
+                bool "Enable I2S1 for Mic"
+                depends on SOC_SF32LB58X || SOC_SF32LB55X
+                default n
+            config BSP_ENABLE_I2S_CODEC
+                bool "Enable I2S2 for Codec"
+                default n
+            config BSP_ENABLE_I2S3
+                depends on SOC_SF32LB58X || SOC_SF32LB56X	    
+                bool "Enable I2S3 for Codec"
+                default n
+        endif
+
+    menuconfig BSP_USING_SDIO
+        bool "Enable SDIO"
+        select RT_USING_SDIO
+        select RT_USING_DFS
+        default n
+        if BSP_USING_SDIO
+            config BSP_USING_SDHCI
+                bool "Enable SD Host Control Interface"
+                default n
+                if BSP_USING_SDHCI
+                    config SD_MMC_DDR_SUPPORT
+                    bool "MMC card use DDR mode"
+                    default n
+                    config SD_MMC_OLINE_SUPPORT
+                    bool "MMC card support 8 line"
+                    default n
+                    menuconfig BSP_USING_SDHCI1
+                    bool "Enable SDHCI Handle 1"
+                    default n
+                    if BSP_USING_SDHCI1
+                        config SD_MAX_FREQ
+                        int "SD max output frequecy"
+                        default 24000000
+                        config SD_DMA_MODE
+                        int "DMA mode: 0 --> PIO, 1 --> SDMA, 2 --> ADMA"
+                        default 2
+                        config SDIO_CARD_MODE
+                        int "SDIO mode: 0 --> SDCARD, 1 --> EMMC, 2 --> SDIO"
+                        default 0
+                    endif
+                    menuconfig BSP_USING_SDHCI2
+                    bool "Enable SDHCI Handle 2"
+                    default n
+                    depends on BF0_HCPU && (SOC_SF32LB58X || SOC_SF32LB55X)
+                    if BSP_USING_SDHCI2
+                        config SD2_MAX_FREQ
+                        int "SD2 max output frequecy"
+                        default 24000000
+                        config SD2_DMA_MODE
+                        int "DMA mode: 0 --> PIO, 1 --> SDMA, 2 --> ADMA"
+                        default 2
+                        config SDIO2_CARD_MODE
+                        int "SDIO mode: 0 --> SDCARD, 1 --> EMMC, 2 --> SDIO"
+                        default 0
+                    endif
+                endif
+                config BSP_USING_SD_LINE
+                bool "Enable Linear SDIO for LITE"
+                default n
+                depends on SOC_SF32LB56X
+                help
+                    Enable Linear SD interface
+
+        endif
+
+    config BSP_USING_PINMUX
+        bool "Enable Pin Mux"
+        default n
+    config BSP_USING_LCPU_PATCH
+        bool "Enable LCPU Patch"
+        default n
+        help
+            Enable LCPU patch binary and install from HCPU
+
+    menuconfig BSP_USING_PDM
+        bool "Enable PDM audio driver"
+        select RT_USING_AUDIO
+        select BSP_USING_DMA
+        default n
+        if BSP_USING_PDM
+            config BSP_USING_PDM1
+                bool "Enable PDM1"
+                default n
+            config BSP_USING_PDM2
+                bool "Enable PDM2"
+                default n
+        endif
+
+    menuconfig BSP_ENABLE_AUD_PRC
+        bool "Enable Audio Process driver"
+    depends on !SOC_SF32LB55X
+        select RT_USING_AUDIO
+        select BSP_USING_DMA
+        default n
+        if BSP_ENABLE_AUD_PRC
+            config BSP_AUDPRC_TX0_DMA
+                bool "Enable AUDPRC TX Channel 0 DMA"
+                default n
+            config BSP_AUDPRC_TX1_DMA
+                bool "Enable AUDPRC TX Channel 1 DMA"
+                default n
+            config BSP_AUDPRC_TX2_DMA
+                bool "Enable AUDPRC TX Channel 2 DMA"
+                default n
+            config BSP_AUDPRC_TX3_DMA
+                bool "Enable AUDPRC TX Channel 3 DMA"
+                default n
+            config BSP_AUDPRC_RX0_DMA
+                bool "Enable AUDPRC RX Channel 0 DMA"
+                default n
+            config BSP_AUDPRC_RX1_DMA
+                bool "Enable AUDPRC RX Channel 1 DMA"
+                default n
+            config BSP_AUDPRC_TX_OUT0_DMA
+                bool "Enable AUDPRC TX Out Channel 0 DMA"
+                default n
+            config BSP_AUDPRC_TX_OUT1_DMA
+                bool "Enable AUDPRC TX Out Channel 1 DMA"
+                default n
+        endif
+
+    menuconfig BSP_ENABLE_AUD_CODEC
+        bool "Enable Audio codec driver"
+    depends on !SOC_SF32LB55X
+        select RT_USING_AUDIO
+        select BSP_USING_DMA
+        default n
+        if BSP_ENABLE_AUD_CODEC
+            config BSP_AUDCODEC_DAC0_DMA
+                bool "Enable AUDCODEC DAC Channel 0 DMA"
+                default n
+            config BSP_AUDCODEC_DAC1_DMA
+                bool "Enable AUDCODEC DAC Channel 1 DMA"
+                default n
+            config BSP_AUDCODEC_ADC0_DMA
+                bool "Enable AUDCODEC ADC Channel 0 DMA"
+                default n
+            config BSP_AUDCODEC_ADC1_DMA
+                bool "Enable AUDCODEC ADC Channel 1 DMA"
+                default n
+        endif
+
+    menuconfig RT_USING_BT
+        bool "Enable bt device"
+        default n
+        if RT_USING_BT
+            choice
+                prompt "bt driver"
+                default BT_USING_FR508X
+                
+                config BT_USING_FR508X
+                    bool "using fr508x"
+                    select RT_USING_AT
+                    select AT_USING_CLIENT
+                    
+                config BT_USING_BT_5376A2
+                    bool "using bt 5376A2"
+                    select RT_USING_AT
+                    select AT_USING_CLIENT
+                config BT_USING_SIFLI
+                    bool "using SIFLI Bluetooth"
+            endchoice
+            
+            config BT_UART_NAME
+                string "bt uart name"
+                default "uart1"
+                
+            config BT_UART_BAUD
+                int "bt uart baud"
+                default 921600
+            
+            config BT_DEVICE_NAME
+                string "bt device name"
+                default "bt_device"
+                
+            config BT_RECV_BUFF_LEN
+                int "bt recv buff size"
+                default 512
+                
+            menuconfig BT_PIN_CONFIG
+                bool "bt pin number config -1:invalid >=0:valid"
+                default y
+                if BT_PIN_CONFIG
+                    config MCU_WAKEUP_BT_PIN
+                        int "mcu wakeup bt pin number"
+                        default 121
+                        
+                    config MCU_RESET_BT_PIN
+                        int "mcu reset bt pin number"
+                        default -1
+                        
+                    config BT_LEVEL_SHIFT_PIN
+                        int "bt level shift pin number"
+                        default -1
+                        
+                    config BT_POWER_PIN
+                        int "bt power pin number"
+                        default 104
+                        
+                    config BT_WAKEUP_MCU_PIN
+                        int "bt wakeup mcu pin number"
+                        default -1
+                        
+                    config BT_SPK_PA_EN_PIN
+                        int "bt spk pa en pin number"
+                        default -1
+                endif
+            
+            config BT_USING_DTMF
+                bool "bt using dtmf"
+                default n
+                
+            config BT_USING_MIC_MUTE
+                bool "bt using mic mute"
+                default n
+                
+            config BT_USING_LOCAL_MEDIA_EX
+                bool "bt using local media ex function"
+                default n
+                
+            config BT_USING_SIRI
+                bool "bt using siri function"
+                default n
+                
+            config BT_USING_AVRCP
+                bool "bt using avrcp"
+                default n
+                
+            config BT_USING_USB
+                bool "bt using usb function"
+                default n
+                
+            config BT_USING_FLASH_DB
+                bool "bt using flash db storage related settings"
+                default n
+                
+            config BT_USING_LINK_BACK
+                bool "bt using service control link back to BT"
+                default n
+                
+            config RT_US_BT_DEBUG
+                bool "open bt debug switch"
+                select AT_PRINT_RAW_CMD
+                default y
+
+            config BT_SHARING_LOG_UART
+                bool "bt client sharing log uart"
+                default n
+
+            config BT_USING_DEVICE_TYPE
+                bool "bt connect device type"
+                default n
+        endif
+
+    config APP_BSP_TEST
+        bool "BSP testcases"
+        default n
+        
+    config BSP_USING_MOTOR
+        bool "Enable motor device"
+        select RT_USING_MOTOR
+        default n
+
+    config BSP_USING_ACPU
+        bool "Enable ACPU"
+        default n
+        depends on BF0_HCPU && SOC_SF32LB58X
+        help
+            Enable ACPU
+
+    config BSP_USING_BUSMON
+        bool "Enable Busminitor for debugging"
+        depends on !SOC_SF32LB54X
+        default n
+        
+    config BSP_NOT_DISABLE_UNUSED_MODULE
+        bool "Not Disable Unused Module for Power Saving"
+        help 
+             HAL API is used instead of rt device driver, so module cannot be disabled
+        default n
+
+    config SF32LB52_USBDEV
+        bool "Enable USB Device Controller"
+        default n
+        select USBDEV
+        ---help---
+            Enable the SF32LB52 on-chip MUSB USB device controller driver.
+
+endmenu
+
+endif

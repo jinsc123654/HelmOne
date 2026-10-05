@@ -1,0 +1,169 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menuconfig SIFLI_LCD
+    bool "SiFli Display Driver"
+    default n
+
+if SIFLI_LCD
+    config LCD_USING_ILI8688E
+        bool
+        default n
+
+    config BSP_LCDC_USING_SPI_NODCX_1DATA
+        def_bool n 
+    config BSP_LCDC_USING_SPI_NODCX_2DATA
+        def_bool n 
+    config BSP_LCDC_USING_SPI_DCX_1DATA
+        def_bool n 
+    config BSP_LCDC_USING_SPI_DCX_2DATA
+        def_bool n 
+    config BSP_LCDC_USING_QADSPI
+        def_bool n 
+    config BSP_LCDC_USING_DBI
+        def_bool n 
+    config BSP_LCDC_USING_DSI
+        def_bool n
+    config BSP_LCDC_USING_DPI
+        def_bool n
+    config BSP_USING_RAMLESS_LCD
+        def_bool n
+    config BSP_LCDC_USING_JDI_PARALLEL
+        def_bool n
+
+    config LCD_USING_PWM_AS_BACKLIGHT
+        def_bool n
+
+    config BSP_LCDC1_USE_LCDC2_TE
+        def_bool n
+
+    config BSP_USE_LCDC2_ON_HPSYS
+        def_bool n
+
+    config BSP_USING_ROUND_TYPE_LCD
+        def_bool n
+
+    config BSP_USING_RECT_TYPE_LCD
+        def_bool n
+
+
+
+    choice
+        prompt "Select LCD"
+        default LCD_USING_NV3031A
+
+        config LCD_USING_ED_LB55BILI8688E
+            bool "1.78 rect QAD-SPI LCD(ED-LB55DSI17801 - Green)"
+            select LCD_USING_ILI8688E
+            select TSC_USING_CST918 if BSP_USING_TOUCHD
+            select BSP_LCDC_USING_QADSPI
+            select BSP_USING_RECT_TYPE_LCD
+            if LCD_USING_ED_LB55BILI8688E
+               config LCD_ILI8688E_VSYNC_ENABLE
+                    bool "Enable LCD VSYNC (TE signal)"
+                    def_bool y
+            endif
+
+        config LCD_USING_CO5300
+            bool "1.85 rect QSPI Single-Screen LCD(LCD_1P85_390*450_DevKit_Adapter_V1.0.0)"
+            select BSP_LCDC_USING_QADSPI
+            select LCD_USING_PWM_AS_BACKLIGHT
+            select BSP_USING_RECT_TYPE_LCD
+            if LCD_USING_CO5300
+               config LCD_CO5300_VSYNC_ENABLE
+                    bool "Enable LCD VSYNC (TE signal)"
+                    def_bool y
+
+                   config LCD_CO5300_BW_TEST_MODE
+                    bool "Enable CO5300 Black/White Test On Boot"
+                    default n
+            endif
+
+        config LCD_USING_ST7789S
+            bool "SPI ST7789S TFT TK024F3036 (PA37-PA42, SPI2)"
+            select BSP_USING_RECT_TYPE_LCD
+            help
+                后续剔除：Helm One 已改 NV3031A，不再使用 ST7789。
+                本选项与 lcd_spi2 / st7789s_lcd / PA40 CS 路径仅作遗留，
+                产品 defconfig 不要打开。
+                TK024F3036 2.4" 320x240 ST7789S on dedicated SPI2 (lcd_spi2,
+                not the generic sifli_spi bus driver):
+                  PA37 MOSI, PA38 MISO, PA39 SCK,
+                  PA40 CS, PA41 BL, PA42 DC
+                Init sequence from vendor LCD.c.
+
+        config LCD_USING_NV3031A
+            bool "NV3031A-AI 240x320 4-bit QSPI TFT"
+            select BSP_LCDC_USING_QADSPI
+            select BSP_USING_LCDC
+            select BSP_USING_RECT_TYPE_LCD
+            help
+                NV3031A-AI RGB565 panel on LCDC1 QAD-SPI (no TE):
+                  PA00 RST, PA01 backlight PWM (GPTIM1 CH4, ~20% duty;
+                  no series LED resistor on this board),
+                  PA03 CS, PA04 SCK, PA05-PA08 D0-D3,
+                  PA10 panel power (active-low).
+                Init sequence from vendor TFT/lcd.c init_9c01().
+
+    endchoice
+
+    # 后续剔除：Helm One 已不用 ST7789，整段 ST7789S 选项可删。
+    if LCD_USING_ST7789S
+        config LCD_ST7789S_SOFTSPI
+            bool "GPIO bit-bang SPI for ST7789S bring-up"
+            default n
+            help
+                Drive PA37/39/40/42 as GPIO (SPI mode 3) instead of
+                hardware SPI2. Use for timing debug; disable after SPI2 works.
+
+        config LCD_ST7789S_SOFTSPI_HALF_US
+            int "Soft-SPI half-bit delay (microseconds)"
+            depends on LCD_ST7789S_SOFTSPI
+            default 2
+            range 0 50
+
+        config LCD_ST7789S_SPI2_TX_DMA
+            bool "DMA for LCD SPI2 pixel transfers (fb flush)"
+            default y
+            help
+                Use HAL_SPI_Transmit_DMA in lcd_spi2 for bulk RGB565
+                transfers (FBIO_UPDATE / st7789 putarea). The calling
+                thread still blocks until DMA completes (sem wait in
+                DMA IRQ callback chain); CPU is idle during the transfer.
+                Small register/cmd traffic stays polling.
+
+        config LCD_ST7789S_RGB_BOOT_TEST
+            bool "Draw RGB bar test pattern on LCD boot"
+            default n
+            help
+                When enabled, fill the panel with red/green/blue bars
+                during board_lcd_initialize(). Disable for product
+                firmware — the bicycle Startup splash replaces this.
+    endif
+
+    config LCD_HOR_RES_MAX
+        int
+        default 368 if LCD_USING_ED_LB55BILI8688E
+        default 390 if LCD_USING_CO5300
+        default 240 if LCD_USING_NV3031A
+        default 320 if LCD_USING_ST7789S
+
+        
+    config LCD_VER_RES_MAX
+        int
+        default 448 if LCD_USING_ED_LB55BILI8688E
+        default 450 if LCD_USING_CO5300
+        default 320 if LCD_USING_NV3031A
+        default 240 if LCD_USING_ST7789S
+
+
+    config LCD_DPI
+        int
+        default 315 if LCD_USING_ED_LB55BILI8688E
+        default 315 if LCD_USING_CO5300
+        default 240 if LCD_USING_NV3031A
+        default 240 if LCD_USING_ST7789S
+
+endif

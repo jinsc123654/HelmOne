@@ -1,0 +1,22 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config INPUT_FT6146
+	bool "FocalTech FT6146 touchscreen controller"
+	default n
+	depends on INPUT && I2C && INPUT_TOUCHSCREEN
+	---help---
+		Enable support for the FocalTech FT6146 touchscreen controller.
+
+if INPUT_FT6146
+
+config TOUCH_IRQ_PIN
+	int "Touch IRQ pin number"
+	default 31
+	---help---
+		Driver GPIO pin id used by sifli_gpio_set_event().
+		PA31 is 31 on this board.
+
+endif

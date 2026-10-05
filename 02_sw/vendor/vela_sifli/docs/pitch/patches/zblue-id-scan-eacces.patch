@@ -1,0 +1,26 @@
+diff --git a/subsys/bluetooth/host/id.c b/subsys/bluetooth/host/id.c
+index e2e8f4824df..cff5ab5913c 100644
+--- a/subsys/bluetooth/host/id.c
++++ b/subsys/bluetooth/host/id.c
+@@ -1868,9 +1868,18 @@ int bt_id_set_scan_own_addr(struct bt_dev *hdev, bool active_scan, uint8_t *own_
+ 		}
+ 
+ 		err = bt_id_set_private_addr(hdev, BT_ID_DEFAULT);
+-		if (err == -EACCES && (atomic_test_bit(hdev->flags, BT_DEV_SCANNING) ||
+-				       atomic_test_bit(hdev->flags, BT_DEV_INITIATING))) {
+-			LOG_WRN("Set random addr failure ignored in scan/init state");
++		if (err == -EACCES) {
++			/* LE Set Random Address is disallowed while advertising,
++			 * scanning, initiating, or (on some controllers) while a
++			 * peripheral link is up.  Keep the current identity and
++			 * still start the observer.
++			 */
++			LOG_WRN("Set random addr disallowed, scan with identity");
++			if (hdev->id_addr[BT_ID_DEFAULT].type == BT_ADDR_LE_PUBLIC) {
++				*own_addr_type = BT_HCI_OWN_ADDR_PUBLIC;
++			} else {
++				*own_addr_type = BT_HCI_OWN_ADDR_RANDOM;
++			}
+ 
+ 			return 0;
+ 		} else if (err) {

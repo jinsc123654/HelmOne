@@ -1,0 +1,60 @@
+/* config.h.in
+ *
+ * MIT License
+ *
+ * Copyright(c) 2023-present All contributors of SGL
+ * Document reference link: https://sgl-docs.readthedocs.io
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef __SGL_CONFIG_H__
+#define __SGL_CONFIG_H__
+
+#cmakedefine01 CONFIG_SGL_COLOR16_SWAP
+#cmakedefine01 CONFIG_SGL_ANIMATION
+#cmakedefine01 CONFIG_SGL_DEBUG
+#cmakedefine01 CONFIG_SGL_DIRTY_AREA_TRACE
+#cmakedefine01 CONFIG_SGL_MONITOR_TRACE
+#cmakedefine01 CONFIG_SGL_LOG_COLOR
+#cmakedefine01 CONFIG_SGL_OBJ_USE_NAME
+#cmakedefine01 CONFIG_SGL_BOOT_LOGO
+#cmakedefine01 CONFIG_SGL_FONT_COMPRESSED
+#cmakedefine01 CONFIG_SGL_FONT_SMALL_TABLE
+#cmakedefine01 CONFIG_SGL_FONT_SONG23
+#cmakedefine01 CONFIG_SGL_FONT_CONSOLAS14
+#cmakedefine01 CONFIG_SGL_FONT_CONSOLAS23
+#cmakedefine01 CONFIG_SGL_FONT_CONSOLAS24
+#cmakedefine01 CONFIG_SGL_FONT_CONSOLAS32
+#cmakedefine01 CONFIG_SGL_FONT_CONSOLAS24_COMPRESS
+#cmakedefine01 CONFIG_SGL_FBDEV_RUNTIME_ROTATION
+#cmakedefine01 CONFIG_SGL_QRCODE
+#cmakedefine01 CONFIG_SGL_SOFT_TIMER
+
+
+#define CONFIG_SGL_LOG_LEVEL ${SGL_LOG_LEVEL}
+#define CONFIG_SGL_FBDEV_PIXEL_DEPTH ${SGL_PANEL_PIXEL_DEPTH}
+#define CONFIG_SGL_EVENT_QUEUE_SIZE ${SGL_EVENT_QUEUE_SIZE}
+#define CONFIG_SGL_SYSTICK_MS ${SGL_SYSTICK_MS}
+#define CONFIG_SGL_DIRTY_AREA_THRESHOLD ${SGL_DIRTY_AREA_THRESHOLD}
+#define CONFIG_SGL_HEAP_ALGO ${SGL_HEAP_ALGO}
+#define CONFIG_SGL_HEAP_MEMORY_SIZE ${SGL_HEAP_MEMORY_SIZE}
+
+
+#define CONFIG_SGL_QRCODE_QR_VERSION_MAX ${CONFIG_SGL_QRCODE_QR_VERSION_MAX}
+
+#endif /* __SGL_CONFIG_H__ */

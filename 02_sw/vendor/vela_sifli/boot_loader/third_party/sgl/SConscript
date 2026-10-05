@@ -1,0 +1,38 @@
+import os
+from building import *
+
+# Relative sources so ram_v2 can compile into build_*/sgl/ (not next to the snapshot).
+cwd = GetCurrentDir()
+_src = os.path.join(cwd, 'source')
+_cfg = os.path.abspath(os.path.join(cwd, '../../project/butterflmicro/board/sgl_cfg'))
+
+src = [
+    'source/core/sgl_core.c',
+    'source/core/sgl_event.c',
+    'source/core/sgl_math.c',
+    'source/core/sgl_snprintf.c',
+    'source/mm/bump/sgl_mm.c',
+    'source/draw/sgl_draw_rect.c',
+    'source/draw/sgl_draw_line.c',
+    'source/draw/sgl_draw_text.c',
+    'source/widgets/label/sgl_label.c',
+    'source/widgets/progress/sgl_progress.c',
+    'source/widgets/img/sgl_img.c',
+    'source/widgets/battery/sgl_battery.c',
+    'source/fonts/sgl_ascii_consolas14.c',
+]
+for _f in src:
+    if not os.path.isfile(os.path.join(cwd, _f)):
+        raise Exception('missing SGL source %s' % os.path.join(cwd, _f))
+
+path = [
+    _cfg,
+    os.path.join(_src, 'include'),
+    os.path.join(_src, 'widgets/label'),
+    os.path.join(_src, 'widgets/progress'),
+    os.path.join(_src, 'widgets/img'),
+    os.path.join(_src, 'widgets/battery'),
+]
+
+group = DefineGroup('SGL', src, depend=[''], CPPPATH=path)
+Return('group')

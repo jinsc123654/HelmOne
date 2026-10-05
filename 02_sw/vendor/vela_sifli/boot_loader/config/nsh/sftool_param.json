@@ -1,0 +1,44 @@
+{
+  "_comment_memory": "memory 为缺省值；若 boot_loader/storage.conf 指定了 nand|sd，则烧录时以其为准（单一选择源，见 scripts/flash_args_lib.py boot_storage_memory）。",
+  "chip": "SF32LB52",
+  "memory": "nand",
+  "write_flash": {
+    "files": [
+      {
+        "path": "ftab.bin",
+        "ptab_img": "ftab",
+        "comment": "vendor/my_vendor/boot_loader/bin/ (build-boot)"
+      },
+      {
+        "path": "bootloader.bin",
+        "ptab_img": "bootloader",
+        "comment": "vendor/my_vendor/boot_loader/bin/ (boot_loader/project)"
+      },
+      {
+        "path": "nuttx.bin",
+        "ptab_img": "main",
+        "comment": "cmake_out/.../nuttx.flash.bin (wrap 后烧录；tools 自动映射)"
+      },
+      {
+        "path": "factory.bin",
+        "ptab_img": "factory",
+        "comment": "cmake_out/my_vendor_nsh-factory/nuttx.flash.bin（build-all / build-factory；日常 flash 会跳过；NAND ptab 无此槽则忽略）"
+      },
+      {
+        "path": "fs_root.bin",
+        "ptab_img": "fs_root",
+        "comment": "vendor/my_vendor/boot_loader/bin/ (mkfs/lfs → LittleFS @ FS_REGION)"
+      },
+      {
+        "path": "kv_root.bin",
+        "ptab_img": "kv_root",
+        "comment": "vendor/my_vendor/boot_loader/bin/ (mkfs/kv → LittleFS @ KV_REGION)"
+      },
+      {
+        "path": "fat_root.bin",
+        "ptab_img": "fat_root",
+        "comment": "vendor/my_vendor/boot_loader/bin/ (mkfs/fat → FAT32 @ FAT_REGION remainder)"
+      }
+    ]
+  }
+}

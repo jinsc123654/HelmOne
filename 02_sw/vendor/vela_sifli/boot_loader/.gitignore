@@ -1,0 +1,12 @@
+# scons output (rebuilt by ./build.sh)
+project/butterflmicro/ram_v2/build_*/
+project/butterflmicro/ram_v2/.sconsign.dblite
+project/butterflmicro/ram_v2/__pycache__/
+
+# release images (build-boot / build-fs / build.sh; all generated locally)
+bin/*
+!bin/.gitkeep
+
+# legacy kconfig dumps (if regenerated locally)
+project/**/.config
+project/**/rtconfig.h

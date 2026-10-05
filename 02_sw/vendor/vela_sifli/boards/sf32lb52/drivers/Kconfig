@@ -1,0 +1,11 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menu "SiFli On-Board Device Drivers"
+source "$BINDIR/drivers/platform/lcd/Kconfig"
+source "$BINDIR/drivers/platform/input/Kconfig"
+source "$BINDIR/drivers/platform/sensor/Kconfig"
+source "$BINDIR/drivers/platform/gnss/Kconfig"
+endmenu # SiFli On-Board Device Drivers

@@ -1,0 +1,5 @@
+# Product version X.Y.Z — authoritative source is Kconfig:
+#   CONFIG_MYVENDOR_PRODUCT_VERSION in chips/sf32lb52/Kconfig
+#   and boards/.../configs/nsh/defconfig
+# wrap reads the defconfig; this file is only a fallback.
+1.4.2

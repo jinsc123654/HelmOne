@@ -1,0 +1,3 @@
+# my_vendor fork: lvgl/ 源码纳入 git（upstream apps/graphics/lvgl 用 /lvgl 忽略解压包）
+/*.zip
+/ext

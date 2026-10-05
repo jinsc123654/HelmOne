@@ -1,0 +1,53 @@
+diff --git a/graphics/lvgl/CMakeLists.txt b/graphics/lvgl/CMakeLists.txt
+index 7bc18e19b..8b66cbe4e 100644
+--- a/graphics/lvgl/CMakeLists.txt
++++ b/graphics/lvgl/CMakeLists.txt
+@@ -18,6 +18,12 @@
+ #
+ # ##############################################################################
+ 
++# my_vendor 占用 LVGL：由 board add_subdirectory(vendor/.../lvgl myvendor_lvgl)
++# 编译。此处跳过，避免与 Vela 自带树重复定义 lvgl target。
++if(CONFIG_MYVENDOR_LVGL_STACK)
++  return()
++endif()
++
+ if(CONFIG_GRAPHICS_LVGL)
+ 
+   # ############################################################################
+@@ -154,6 +160,17 @@ if(CONFIG_GRAPHICS_LVGL)
+     target_compile_options(lvgl PRIVATE ${CONFIG_LV_OPTLEVEL})
+   endif()
+ 
++  if(CONFIG_LV_USE_SIFLI_EPIC)
++    get_filename_component(_sifli_drv "${NUTTX_CHIP_ABS_DIR}/../drivers" ABSOLUTE)
++    get_filename_component(_sifli_ext "${NUTTX_CHIP_ABS_DIR}/../external/CMSIS/Include"
++                         ABSOLUTE)
++    target_include_directories(
++      lvgl
++      PRIVATE ${_sifli_drv}/Include ${_sifli_drv}/cmsis/Include
++              ${_sifli_drv}/cmsis/sf32lb52x ${_sifli_ext})
++    target_compile_definitions(lvgl PRIVATE SOC_BF0_HCPU SF32LB52X)
++  endif()
++
+   # this macro should be visiable to LVGL and all libraries that use LVGL
+   target_compile_options(
+     lvgl PUBLIC "-DLV_ATTRIBUTE_MEM_ALIGN=aligned_data(LV_DRAW_BUF_ALIGN)")
+diff --git a/graphics/lvgl/Makefile b/graphics/lvgl/Makefile
+index c2f34d983..338ff02fe 100644
+--- a/graphics/lvgl/Makefile
++++ b/graphics/lvgl/Makefile
+@@ -62,6 +62,13 @@ ifeq ($(CONFIG_LV_USE_DRAW_VG_LITE),y)
+ CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/../$(CONFIG_LV_DRAW_VG_LITE_INCLUDE)
+ endif
+ 
++ifneq ($(CONFIG_LV_USE_SIFLI_EPIC),)
++CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/../$(CONFIG_ARCH_CHIP_CUSTOM_DIR)/../drivers/Include
++CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/../$(CONFIG_ARCH_CHIP_CUSTOM_DIR)/../drivers/cmsis/Include
++CFLAGS += ${INCDIR_PREFIX}$(APPDIR)/../$(CONFIG_ARCH_CHIP_CUSTOM_DIR)/../drivers/cmsis/sf32lb52x
++CFLAGS += -DSOC_BF0_HCPU -DSF32LB52X
++endif
++
+ ifneq ($(CONFIG_LV_ASSERT_HANDLER_INCLUDE), "")
+ CFLAGS += "-DLV_ASSERT_HANDLER=ASSERT(0);"
+ endif

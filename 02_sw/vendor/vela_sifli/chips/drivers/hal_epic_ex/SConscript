@@ -1,0 +1,13 @@
+from building import * 
+import rtconfig
+
+# get current dir path
+cwd = GetCurrentDir()
+
+# init src and inc vars
+src = []
+inc = [cwd]
+lib = [GroupLibName("hal_epic_ex")]
+
+obj = DefineGroup('lib_hal_epic_ex', src, depend = [''], CPPPATH = inc, LIBS=lib, LIBPATH=inc)
+Return('obj')

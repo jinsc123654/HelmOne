@@ -1,0 +1,26 @@
+#
+# vendor/my_vendor/apps/graphics/lvgl/Kconfig
+#
+# LVGL build is owned by my_vendor (CONFIG_MYVENDOR_LVGL_STACK).
+# Do not enable CONFIG_GRAPHICS_LVGL in apps/graphics/lvgl at the same time.
+#
+
+if MYVENDOR_LVGL_STACK
+
+config LV_OPTLEVEL
+	string "Customize compilation optimization level"
+	default ""
+
+config LV_DRAW_VG_LITE_INCLUDE
+	string "VG-Lite API header include path"
+	depends on LV_USE_DRAW_VG_LITE
+	default ""
+
+config LV_GPU_G2D_INCLUDE_PATH
+	string "include path of G2D header"
+	depends on LV_USE_DRAW_G2D
+	default ""
+
+osource "./lvgl/Kconfig"
+
+endif # MYVENDOR_LVGL_STACK

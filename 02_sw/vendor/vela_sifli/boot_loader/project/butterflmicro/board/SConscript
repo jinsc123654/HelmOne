@@ -1,0 +1,64 @@
+import os
+import shutil
+import rtconfig
+from building import *
+
+cwd = GetCurrentDir()
+src = Glob('*.c')
+_sgl = os.path.abspath(os.path.join(cwd, '../../../third_party/sgl/source'))
+_sgl_cfg = os.path.join(cwd, 'sgl_cfg')
+path =  [_sgl_cfg, cwd, os.path.abspath(os.path.join(cwd, '../../../include')),
+         os.path.abspath(os.path.join(cwd, '../../../../boards/sf32lb52/my_vendor/include')),
+         os.path.join(_sgl, 'include'),
+         os.path.join(_sgl, 'widgets/label'),
+         os.path.join(_sgl, 'widgets/progress'),
+         os.path.join(_sgl, 'widgets/img'),
+         os.path.join(_sgl, 'widgets/battery')]
+
+CPPDEFINES = []
+if GetDepend('CFG_BOOTROM'):
+    SrcRemove(src,'board_psram.c')
+if GetDepend('CFG_BOOTLOADER') and not GetDepend('CFG_BOOTROM'):
+    CPPDEFINES += ['CFG_BOOTLOADER']
+
+# Default boot storage selected at build time by boot_loader/storage.conf
+# (build.sh exports BOOT_STORAGE). board.c::board_boot_from() uses the matching
+# BOOT_DEFAULT_FROM_* macro to force the 2nd-stage boot source.
+_boot_storage = os.getenv('BOOT_STORAGE', 'nand').strip().lower()
+if _boot_storage == 'sd':
+    CPPDEFINES += ['BOOT_DEFAULT_FROM_SD']
+elif _boot_storage == 'emmc':
+    CPPDEFINES += ['BOOT_DEFAULT_FROM_EMMC']
+elif _boot_storage == 'nor':
+    CPPDEFINES += ['BOOT_DEFAULT_FROM_NOR']
+else:
+    CPPDEFINES += ['BOOT_DEFAULT_FROM_NAND']
+
+# Same littlefs sources as NuttX /mnt/kv (v2.7 / disk 2.1). Copy out of
+# nuttx/ so scons does not drop .o into the NuttX tree. Do not use
+# littlefs-v2.5.1 (disk 2.0) — NuttX KV mounts as LFS_ERR_CORRUPT (-84).
+# LFS_READONLY is off: NuttX's getpath patch needs lfs_fs_parent.
+_lfs_src = os.path.abspath(os.path.join(cwd, '../../../../../../nuttx/fs/littlefs/littlefs'))
+_lfs = os.path.abspath(os.path.join(cwd, '../../../../.cache/littlefs-nuttx'))
+if not os.path.isfile(os.path.join(_lfs_src, 'lfs.c')):
+    raise Exception('missing %s/lfs.c' % _lfs_src)
+os.makedirs(_lfs, exist_ok=True)
+for _f in ('lfs.c', 'lfs_util.c', 'lfs.h', 'lfs_util.h'):
+    shutil.copy2(os.path.join(_lfs_src, _f), os.path.join(_lfs, _f))
+src += [os.path.join(_lfs, 'lfs.c'), os.path.join(_lfs, 'lfs_util.c')]
+path += [_lfs]
+
+# SGL sources are compiled by third_party/sgl/SConscript (variant_dir sgl/).
+# Keep include paths here so board/boot_sgl.c finds sgl_config.h first.
+CPPDEFINES += [
+    'LFS_NO_MALLOC',
+    'LFS_NAME_MAX=128',
+    'LFS_NO_DEBUG',
+    'LFS_NO_WARN',
+    'LFS_NO_ERROR',
+    'LFS_NO_ASSERT',
+]
+
+group = DefineGroup('Drivers', src, depend = [''], CPPPATH = path, CPPDEFINES = CPPDEFINES)
+Return('group')
+

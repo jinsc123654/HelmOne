@@ -1,0 +1,22 @@
+{
+  "comment": "NAND boot build profile — used by boot_loader/build.sh --config nsh",
+  "sdk_board": "sf32lb52-nano_a128r16",
+  "sdk_flash_table": "example/flash_table/sf32lb52x_common_v2",
+  "boot_loader_project": "project/butterflmicro/ram_v2",
+  "nuttx_output": "cmake_out/my_vendor_nsh",
+  "boot_images_subdir": "nsh",
+  "images": {
+    "ftab": {
+      "file": "ftab.bin",
+      "address": "0x62000000"
+    },
+    "bootloader": {
+      "file": "bootloader.bin",
+      "address": "0x62080000"
+    },
+    "main": {
+      "file": "nuttx.bin",
+      "address": "0x620A0000"
+    }
+  }
+}

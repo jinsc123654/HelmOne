@@ -1,0 +1,145 @@
+/**
+ * @file mtp_simple.h
+ * @brief 轻量 MTP 应答器公共常量与 PTP 容器类型（LittleFS /mnt/lfs）。
+ *
+ * 单线程 poll，无 GLib。特性开关见 mtp_features.h（非 Kconfig）。
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#ifndef MY_VENDOR_MTP_SIMPLE_H
+#define MY_VENDOR_MTP_SIMPLE_H
+
+#include <stdint.h>
+
+/** PTP 容器类型。 */
+#define PTP_CONTAINER_COMMAND   1
+#define PTP_CONTAINER_DATA      2
+#define PTP_CONTAINER_RESPONSE  3
+#define PTP_CONTAINER_EVENT     4
+
+/** 异步事件码。 */
+#define PTP_EVENTCODE_OBJECTADDED       0x4002
+#define PTP_EVENTCODE_OBJECTREMOVED     0x4003
+#define PTP_EVENTCODE_STOREADDED        0x4004
+#define PTP_EVENTCODE_STOREREMOVED      0x4005
+#define PTP_EVENTCODE_OBJECTINFOCHANGED 0x4007
+
+/** PTP 操作码（节选）。 */
+#define PTP_OPCODE_GETDEVICEINFO        0x1001
+#define PTP_OPCODE_OPENSESSION          0x1002
+#define PTP_OPCODE_CLOSESESSION         0x1003
+#define PTP_OPCODE_GETSTORAGEIDS        0x1004
+#define PTP_OPCODE_GETSTORAGEINFO       0x1005
+#define PTP_OPCODE_GETNUMOBJECTS        0x1006
+#define PTP_OPCODE_GETOBJECTHANDLES     0x1007
+#define PTP_OPCODE_GETOBJECTINFO        0x1008
+#define PTP_OPCODE_GETOBJECT            0x1009
+#define PTP_OPCODE_GETTHUMB             0x100a
+#define PTP_OPCODE_DELETEOBJECT         0x100b
+#define PTP_OPCODE_SENDOBJECTINFO       0x100c
+#define PTP_OPCODE_SENDOBJECT           0x100d
+#define PTP_OPCODE_FORMATSTORE          0x100f
+#define PTP_OPCODE_INITIATECAPTURE      0x1010
+#define PTP_OPCODE_TERMINATECAPTURE     0x1011
+#define PTP_OPCODE_GETDEVICEPROPDESC    0x1014
+#define PTP_OPCODE_GETDEVICEPROPVALUE   0x1015
+#define PTP_OPCODE_SETDEVICEPROPVALUE   0x1016
+#define PTP_OPCODE_MOVEOBJECT           0x1019
+#define PTP_OPCODE_COPYOBJECT           0x101a
+#define PTP_OPCODE_GETPARTIALOBJECT     0x101b
+
+/** MTP 对象/设备属性操作码。 */
+#define MTP_OPCODE_GETOBJECTPROPSUPPORTED 0x9801
+#define MTP_OPCODE_GETOBJECTPROPDESC      0x9802
+#define MTP_OPCODE_GETOBJECTPROPVALUE     0x9803
+#define MTP_OPCODE_SETOBJECTPROPVALUE     0x9804
+#define MTP_OPCODE_GETOBJECTPROPLIST      0x9805
+#define MTP_OPCODE_GETOBJECTREFERENCES    0x9810
+#define MTP_OPCODE_SETOBJECTREFERENCES    0x9811
+#define MTP_OPCODE_UPDATEOBJECT           0x9816
+
+#define MTP_PROPERTY_PERCEIVEDDEVICETYPE  0xd407
+
+#define MTP_OBJPROP_OBJECTSIZE            0xdc04
+#define MTP_OBJPROP_FILENAME              0xdc07
+#define MTP_OBJPROP_DATECREATED           0xdc08
+#define MTP_OBJPROP_DATEMODIFIED          0xdc09
+#define MTP_PROP_GROUPCODE_GENERAL        0
+
+#define PTP_DATATYPE_UINT32           0x0006
+#define PTP_DATATYPE_STRING           0xffff
+#define PTP_PROPGETSET_GETONLY        0x00
+#define PTP_PROPGETSET_GETSET         0x01
+#define PTP_FORMFLAGS_NONE            0x00
+
+/** PTP 响应码（节选）。 */
+#define PTP_RESPONSE_OK                 0x2001
+#define PTP_RESPONSE_GEN_ERROR          0x2002
+#define PTP_RESPONSE_SESSIONNOTOPEN     0x2003
+#define PTP_RESPONSE_OP_NOT_SUPPORTED   0x2005
+#define PTP_RESPONSE_PARAM_NOTSUPPORTED 0x2006
+#define PTP_RESPONSE_PROP_NOTSUPPORTED  0x200a
+#define PTP_RESPONSE_INVALID_STORE_ID   0x2008
+#define PTP_RESPONSE_INVALID_OBJ_HANDLE 0x2009
+#define PTP_RESPONSE_STOREFULL          0x200c
+#define PTP_RESPONSE_NOVALID_OBJINFO    0x2015
+#define PTP_RESPONSE_ACCESS_DENIED      0x200f
+#define PTP_RESPONSE_INVALIDPARENT      0x201a
+#define PTP_RESPONSE_DEVICEBUSY         0x2019
+#define PTP_RESPONSE_SESSIONALREADYOPEN 0x201e
+#define PTP_RESPONSE_PARTIAL_DELETION   0x2017
+
+#define PTP_FMT_UNDEFINED   0x3000
+#define PTP_FMT_ASSOCIATION 0x3001
+
+#define PTP_FORMATCODE_ALL          0xffffffffu
+#define PTP_OBJECTHANDLE_ROOT       0x00000000u
+#define PTP_ASSOCIATIONTYPE_FOLDER  0x0001
+
+#define PTP_STORAGEACCESS_RWD       0x0000
+#define PTP_STORAGEACCESS_R         0x0001
+
+#define PTP_STORAGETYPE_REMOVABLERAM    0x0004
+#define PTP_FILESYSTEMTYPE_HIERARCHICAL 0x0002
+
+#define MTP_STORAGE_ID      0x00010001u
+#define MTP_ROOT_HANDLE     0x00000001u
+#define MTP_HANDLE_BASE     0x00001000u
+
+#define MTP_MAX_PACKET_FS   64
+#define MTP_IO_CHUNK        4096
+
+/** 运行时 catalog 上限（由 PSRAM bump arena 推算）。 */
+#define MTP_MAX_OBJECTS_MIN 32
+
+/**
+ * @brief 返回当前配置下 catalog 最大对象数。
+ */
+unsigned mtp_max_objects(void);
+#define MTP_MAX_PATH        256
+#define MTP_MAX_NAME        128
+
+#define USB_PTPREQUEST_CANCELIO  0x64
+#define USB_PTPREQUEST_GETEVENT  0x65
+#define USB_PTPREQUEST_RESET     0x66
+#define USB_PTPREQUEST_GETSTATUS 0x67
+
+/** PTP 容器头。 */
+struct ptp_header
+{
+  uint32_t len;
+  uint16_t type;
+  uint16_t code;
+  uint32_t tid;
+};
+
+/** 解析后的 Command 容器。 */
+struct ptp_cmd
+{
+  struct ptp_header hdr;
+  uint32_t params[5];
+  int nparam;
+};
+
+#endif /* MY_VENDOR_MTP_SIMPLE_H */

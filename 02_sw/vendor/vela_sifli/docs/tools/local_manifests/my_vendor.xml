@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="my"
+          fetch="https://gitee.com/jinsc123654" />
+
+  <project path="vendor/my_vendor"
+           name="vela_sifli"
+           remote="my"
+           revision="master" />
+</manifest>

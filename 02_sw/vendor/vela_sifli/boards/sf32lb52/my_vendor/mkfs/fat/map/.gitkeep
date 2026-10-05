@@ -1,0 +1,2 @@
+地图分片目录（由 pack_map.py 从矢量数据生成，约 7.8 GB）。
+本提交仓只保留本占位文件；需要用地图时按 docs/build/reproduce.md 生成或下载。

@@ -1,0 +1,47 @@
+diff --git a/cmake/nuttx_kconfig.cmake b/cmake/nuttx_kconfig.cmake
+index dedec049e3f..68b089be94f 100644
+--- a/cmake/nuttx_kconfig.cmake
++++ b/cmake/nuttx_kconfig.cmake
+@@ -44,11 +44,15 @@ function(nuttx_export_kconfig_by_value kconfigfile config)
+   foreach(NameAndValue ${ConfigContents})
+     decode_brackets(NameAndValue)
+     encode_semicolon(NameAndValue)
+-    string(REGEX REPLACE "^[ ]+" "" NameAndValue ${NameAndValue})
+-    string(REGEX MATCH "^CONFIG[^=]+" Name ${NameAndValue})
++    # Quote: blank .config lines expand to zero args and CMake 3.23+ errors.
++    string(REGEX REPLACE "^[ ]+" "" NameAndValue "${NameAndValue}")
++    if(NameAndValue STREQUAL "")
++      continue()
++    endif()
++    string(REGEX MATCH "^CONFIG[^=]+" Name "${NameAndValue}")
+     if(Name STREQUAL ${config})
+-      string(REPLACE "${Name}=" "" Value ${NameAndValue})
+-      string(REPLACE "\"" "" Value ${Value})
++      string(REPLACE "${Name}=" "" Value "${NameAndValue}")
++      string(REPLACE "\"" "" Value "${Value}")
+       decode_semicolon(Value)
+       set(${Name}
+           ${Value}
+@@ -69,15 +73,18 @@ function(nuttx_export_kconfig kconfigfile)
+   foreach(NameAndValue ${ConfigContents})
+     decode_brackets(NameAndValue)
+     encode_semicolon(NameAndValue)
+-    # Strip leading spaces
+-    string(REGEX REPLACE "^[ ]+" "" NameAndValue ${NameAndValue})
++    # Strip leading spaces (quote: blank lines must not drop args)
++    string(REGEX REPLACE "^[ ]+" "" NameAndValue "${NameAndValue}")
++    if(NameAndValue STREQUAL "")
++      continue()
++    endif()
+ 
+     # Find variable name
+-    string(REGEX MATCH "^CONFIG[^=]+" Name ${NameAndValue})
++    string(REGEX MATCH "^CONFIG[^=]+" Name "${NameAndValue}")
+ 
+     if(Name)
+       # Find the value
+-      string(REPLACE "${Name}=" "" Value ${NameAndValue})
++      string(REPLACE "${Name}=" "" Value "${NameAndValue}")
+ 
+       # remove extra quotes
+       if(Value MATCHES "^\"(.*)\"$")

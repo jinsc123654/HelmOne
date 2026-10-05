@@ -1,0 +1,13 @@
+############################################################################
+# vendor/my_vendor/boards/sf32lb52/drivers/gnss/Make.defs
+#
+# SPDX-License-Identifier: Apache-2.0
+############################################################################
+
+ifeq ($(CONFIG_BOARD_L96_GNSS),y)
+CSRCS += sf32lb52_l96.c
+endif
+
+DEPPATH += --dep-path platform$(DELIM)gnss
+VPATH += :platform$(DELIM)gnss
+CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)$(DELIM)drivers$(DELIM)platform$(DELIM)gnss

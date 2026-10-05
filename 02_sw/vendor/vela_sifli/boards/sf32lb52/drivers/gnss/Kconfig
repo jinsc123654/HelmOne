@@ -1,0 +1,80 @@
+#
+# u-blox MAX-M10S-00B-01 GNSS on UART2
+# (PA31 MCU TX / PA32 MCU RX / PA43 GNSS_PWR = module VCC)
+#
+
+config BOARD_L96_GNSS
+	bool "u-blox MAX-M10S-00B-01 GNSS (board UART2)"
+	default n
+	depends on BSP_USING_UART2
+	select GNSSUTILS_MINMEA_LIB
+	---help---
+		Enable MAX-M10S-00B-01 GNSS on USART2 (/dev/ttyS0).
+		MCU PA32 receives GNSS_TX; MCU PA31 drives GNSS_RX.
+		PA43 is GNSS_PWR (module VCC). USART2 stays open and
+		polls like the NSH console UART. Official low power is
+		cutting module VCC, not closing the host UART. Use NSH
+		"test gnss" to read NMEA.
+
+if BOARD_L96_GNSS
+
+config BOARD_L96_GNSS_DEVPATH
+	string "GNSS UART device path"
+	default "/dev/ttyS0"
+	---help---
+		USART2 is registered as /dev/ttyS0 when USART1 is the console.
+
+config BOARD_L96_GNSS_BAUD
+	int "GNSS UART baud rate"
+	default 38400
+	---help---
+		M10 ROM default is 38400 8N1 NMEA. MAX-M10S-00B-01 OTP may
+		fuse 9600; use 9600 if RX is garbage at 38400.
+
+config BOARD_L96_GNSS_PWR_ACTIVE_HIGH
+	bool "GNSS_PWR is active high"
+	default n
+	---help---
+		N (default): drive PA43 low to power the module (P-MOS / inverted enable).
+		Y: drive PA43 high to power the module.
+
+config BOARD_L96_GNSS_PWR_DELAY_MS
+	int "Power-on settle time (milliseconds)"
+	default 1000
+	---help---
+		Delay after asserting GNSS_PWR before the module UART is used.
+
+config BOARD_L96_GNSS_PWR_OFF_MS
+	int "Power-off hold time (milliseconds)"
+	default 2500
+	---help---
+		Active-low GNSS_PWR stays high this long during a restart so
+		the MAX-M10S-00B-01 rail can fall. 500 ms is often too short
+		after a forced off (test iowrite / brownout). Do not close
+		USART2 for this: official low power is cutting VCC only.
+
+config MYVENDOR_GNSS_LOG
+	bool "GNSS UART / eph / idle extra logs"
+	default n
+	---help---
+		Event INFO logs: MAX-M10S-00B-01 VCC cycle, idle sleep/wake,
+		poll timeout runs, eph inject progress, first PVT frame dump.
+		These only fire on state changes, so they can stay on while
+		soaking. Steady-state per-frame telemetry moved to
+		MYVENDOR_GNSS_TRACE.
+
+config MYVENDOR_GNSS_TRACE
+	bool "GNSS steady-state per-frame telemetry (noisy)"
+	default n
+	---help---
+		Diagnostic/steady-state logs, printed at DEBUG level: 1 Hz
+		publish (valid/sats/q/speed), per-frame PVT (gSpeed/sAcc), 5 s
+		link / link cpu / link extra window dump, poll_to run counter.
+		Healthy output is identical line after line and fills the
+		console ring within a minute, hiding the event that matters.
+		Off by default and compiled out entirely (macro expands to
+		nothing) - turn on only when the numbers themselves are the
+		thing under investigation. Diag files only keep WARN+, so
+		these never reach /mnt/kv/diag either way.
+
+endif # BOARD_L96_GNSS

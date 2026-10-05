@@ -1,0 +1,19 @@
+import os
+from building import *
+
+cwd = GetCurrentDir()
+objs = []
+list = os.listdir(cwd)
+
+# Add board
+objs.extend(SConscript(os.path.join(cwd, '../board/SConscript'), variant_dir="board", duplicate=0))
+
+# SGL snapshot (relative sources → build_*/sgl/, not third_party/sgl/*.o)
+_sgl = os.path.abspath(os.path.join(cwd, '../../../third_party/sgl'))
+objs.extend(SConscript(os.path.join(_sgl, 'SConscript'), variant_dir="sgl", duplicate=0))
+
+# Add SDK
+Import('SIFLI_SDK')
+objs.extend(SConscript(os.path.join(SIFLI_SDK, 'SConscript'), variant_dir="sifli_sdk", duplicate=0))
+
+Return('objs')
