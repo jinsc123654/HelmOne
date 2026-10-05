@@ -15,16 +15,15 @@ OPENVELA = MYV.parent.parent
 sys.path.insert(0, str(SCRIPT.parent))
 import flash_args_lib as fal  # noqa: E402
 
-BOARD_CONFIG = "vendor/my_vendor/boards/sf32lb52/my_vendor/configs/nsh"
-BOOT_CONFIG = "vendor/my_vendor/boot_loader/config/nsh"
-BOOT_BIN_DIR = "vendor/my_vendor/boot_loader/bin"
+# 相对**本树根**（MYV = <vendor>）—— 这棵树在 vendor/ 下叫什么都行
+BOARD_CONFIG = "boards/sf32lb52/my_vendor/configs/nsh"
+BOOT_CONFIG = "boot_loader/config/nsh"
+BOOT_BIN_DIR = "boot_loader/bin"
 
 
 def cmake_out_dir(root: Path) -> Path:
     cfg = Path(BOARD_CONFIG.strip("/"))
-    board_name = cfg.parent.parent.name
-    config_name = cfg.name
-    return root / "cmake_out" / f"{board_name}_{config_name}"
+    return root / "cmake_out" / f"{MYV.name}_{cfg.name}"
 
 
 def main() -> int:
@@ -39,7 +38,7 @@ def main() -> int:
         "--out",
         type=Path,
         default=None,
-        help="CMake output dir (default: cmake_out/my_vendor_nsh)",
+        help="CMake output dir (default: cmake_out/<本树目录名>_nsh)",
     )
     args = parser.parse_args()
     root = args.root.resolve()

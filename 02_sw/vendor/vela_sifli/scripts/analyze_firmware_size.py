@@ -186,12 +186,8 @@ def cmake_out_dir(root: Path, board: str, config: str) -> Path:
 
 
 def defconfig_path(root: Path, board: str, config: str) -> Path:
-    return (
-        root
-        / "vendor/my_vendor/boards/sf32lb52/my_vendor/configs"
-        / config
-        / "defconfig"
-    )
+    # 相对**本树根**（MY_VENDOR = <vendor>）—— 这棵树在 vendor/ 下叫什么都行
+    return MY_VENDOR / "boards" / "sf32lb52" / board / "configs" / config / "defconfig"
 
 
 def require_tool(name: str) -> str:

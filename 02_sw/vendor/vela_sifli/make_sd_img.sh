@@ -46,8 +46,9 @@ fi
 
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"           # openvela 工作区根
-TOOL="$ROOT/vendor/my_vendor/build_board.py"
-[ -f "$TOOL" ] || { echo "找不到 $TOOL（脚本要放在 vendor/my_vendor/ 下）" >&2; exit 1; }
+# 工具链随本树走（本脚本就在固件树根目录）：这棵树在 vendor/ 下叫什么都行
+TOOL="$HERE/build_board.py"
+[ -f "$TOOL" ] || { echo "找不到 $TOOL（本脚本要放在固件树根目录）" >&2; exit 1; }
 cd "$ROOT"
 
 echo "=== 1/3 main 槽固件 ==="
@@ -56,16 +57,16 @@ python3 "$TOOL" build
 echo "=== 2/3 factory 槽固件 ==="
 python3 "$TOOL" build-factory
 
-if [ -d "$ROOT/vendor/my_vendor/boot_loader/project" ]; then
+if [ -d "$HERE/boot_loader/project" ]; then
   echo "=== 3/3 二级 boot（重建 ftab.bin + bootloader.bin）==="
   python3 "$TOOL" build-boot
 else
   echo "=== 3/3 二级 boot：用随仓的 boot_loader/bin 预编译件（本树未含 project）==="
 fi
 
-IMG="${OUT:-$ROOT/vendor/my_vendor/boot_loader/bin/my_vendor_sd.img}"
+IMG="${OUT:-$HERE/boot_loader/bin/my_vendor_sd.img}"
 echo "=== pack-sd-img: 卡容量 ${MIB} MiB -> $IMG ==="
-python3 "$ROOT/vendor/my_vendor/scripts/pack_sd_img.py" \
+python3 "$HERE/scripts/pack_sd_img.py" \
   --card-mib "$MIB" --full-size -o "$IMG"
 
 ls -lh "$IMG"

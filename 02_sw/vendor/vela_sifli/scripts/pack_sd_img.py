@@ -32,8 +32,11 @@ SCRIPT = Path(__file__).resolve()
 sys.path.insert(0, str(SCRIPT.parent))
 import flash_args_lib as fal  # noqa: E402
 
-BOOT_CONFIG = "vendor/my_vendor/boot_loader/config/nsh"
-BOOT_BIN_DIR = "vendor/my_vendor/boot_loader/bin"
+# 相对**本树根**（VENDOR_ROOT = <vendor>/scripts/ 往上两级）—— 这棵树在 vendor/ 下
+# 叫什么都行；解析统一由 flash_args_lib 的 boot_config_dir / boot_bin_dir 完成。
+VENDOR_ROOT = SCRIPT.parent.parent
+BOOT_CONFIG = "boot_loader/config/nsh"
+BOOT_BIN_DIR = "boot_loader/bin"
 DEFAULT_OUT_NAME = "my_vendor_sd.img"
 SECTOR = 512
 # Boot band 1 MiB + main 4 MiB + factory 4 MiB. 0xFF like erased flash.
@@ -525,7 +528,8 @@ def main() -> int:
     )
     args = parser.parse_args()
     root = args.root.resolve()
-    out = (args.out or (root / "cmake_out" / "my_vendor_nsh")).resolve()
+    # 输出目录带本树目录名（本树在 vendor/my_vendor 时仍是 cmake_out/my_vendor_nsh）
+    out = (args.out or (root / "cmake_out" / f"{VENDOR_ROOT.name}_nsh")).resolve()
 
     pack_sd_img(
         root,

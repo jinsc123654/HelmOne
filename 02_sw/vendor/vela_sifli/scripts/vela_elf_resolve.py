@@ -89,10 +89,15 @@ FAULT_CASE_ZH: dict[str, str] = {
     "heap": "堆 double-free",
 }
 
+# 本树在 vendor/ 下的目录名（这棵树可以叫任意名字；下面按路径片段分类）
+_VENDOR_NAME = Path(__file__).resolve().parent.parent.name
+
 # addr2line 路径 → 模块简述
 _PATH_HINTS: tuple[tuple[str, str], ...] = (
-    ("/vendor/my_vendor/boards/", "板级 / bicycle / test"),
-    ("/vendor/my_vendor/", "my_vendor 驱动或组件"),
+    (f"/vendor/{_VENDOR_NAME}/boards/", "板级 / bicycle / test"),
+    (f"/vendor/{_VENDOR_NAME}/", f"{_VENDOR_NAME} 驱动或组件"),
+    # 兜底：另一份 vendor 树（开发树 my_vendor 与产品树 vela_sifli 交叉解码时）
+    ("/vendor/", "vendor 树 / 驱动或组件"),
     ("/nuttx/sched/misc/assert", "NuttX 断言处理"),
     ("/nuttx/libs/libc/assert", "libc 断言入口"),
     ("/nuttx/arch/", "架构 / 异常入口"),
@@ -162,7 +167,7 @@ def shorten_location(loc: str) -> str:
         line = re.sub(r"\s*\(discriminator[^)]*\)", "", line).strip()
     else:
         path, line = loc, "?"
-    for marker in ("/vendor/my_vendor/", "/nuttx/", "/apps/"):
+    for marker in (f"/vendor/{_VENDOR_NAME}/", "/vendor/", "/nuttx/", "/apps/"):
         idx = path.find(marker)
         if idx >= 0:
             path = path[idx + 1 :]
@@ -202,7 +207,7 @@ def fault_case_zh(name: str) -> str:
 
 
 def sym_rel_location(sym: ResolvedSymbol) -> str:
-    """vendor/my_vendor/.../test_fault.c:111"""
+    """<本树>/boards/.../test_fault.c:111"""
     if not sym.ok:
         return "?"
     return shorten_location(sym.location)

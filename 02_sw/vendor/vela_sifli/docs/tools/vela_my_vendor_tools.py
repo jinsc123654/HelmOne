@@ -59,21 +59,23 @@ from pathlib import Path
 # =============================================================================
 # 工程配置 — 切换板子时主要改这里
 # =============================================================================
-# 开发主树固定为 vendor/my_vendor。vendor/HelmOne 仅打包快照，非特殊声明不要改、
-# 也不要把 BOARD_CONFIG 指过去（见 vendor/HelmOne/README.md）。
+# ⚠ 本工具链**不假定这棵树叫 my_vendor**：下面所有相对路径都以**本树根**
+# （`VENDOR_ROOT`，由本文件位置推导：<vendor>/docs/tools/ 往上三级）为基准，
+# 运行期才解析 ⇒ 本树放在 <openvela>/vendor/<任意名字>/ 下都能编；多份并存也
+# 互不干扰（cmake_out 目录名会带上本树目录名）。
 
-# 相对 openvela 根目录的板级 config 路径（末尾可有可无 /）
+# 相对**本树根**的板级 config 路径（末尾可有可无 /）
 # 与 sifli 一致：configs/nsh/ 仅含 defconfig
-BOARD_CONFIG = "vendor/my_vendor/boards/sf32lb52/my_vendor/configs/nsh"
+BOARD_CONFIG = "boards/sf32lb52/my_vendor/configs/nsh"
 
 # Factory 固件变体（MTP 自启 /mnt/lfs + EXTRA_PATHS /mnt/kv,/mnt/fat）。
 # build-all 始终编它；也可单独 build-factory / flash-factory。
-# 独立输出到 cmake_out/my_vendor_nsh-factory/，打进 pack-sd-img / flash-all 的 factory 槽；
+# 独立输出到 cmake_out/<本树目录名>_nsh-factory/，打进 pack-sd-img / flash-all 的 factory 槽；
 # 2SFBL 的 "factory" 命令跳转到它。产品固件仍走上面的 BOARD_CONFIG。日常 flash 不含此槽。
-FACTORY_BOARD_CONFIG = "vendor/my_vendor/boards/sf32lb52/my_vendor/configs/nsh-factory"
+FACTORY_BOARD_CONFIG = "boards/sf32lb52/my_vendor/configs/nsh-factory"
 
 # NAND boot 配置（分区表、烧录参数）— 不在 board configs 里
-BOOT_CONFIG = "vendor/my_vendor/boot_loader/config/nsh"
+BOOT_CONFIG = "boot_loader/config/nsh"
 
 # UART 下载 / 串口监视（Linux: /dev/ttyUSB0；Windows: COM19 或 19）
 PORT: str | None = None
@@ -105,7 +107,7 @@ MONITOR_DTR = True
 MONITOR_RTS = True
 # 无 CONFIG_ALLSYMS 时，用 ELF+addr2line 解析 backtrace/PC（类似 ESP-IDF monitor）
 MONITOR_DECODE_ELF = True
-ELF_RESOLVE_SCRIPT = "vendor/my_vendor/scripts/vela_elf_resolve.py"
+ELF_RESOLVE_SCRIPT = "scripts/vela_elf_resolve.py"
 # monitor 旁路控制：本机 Unix 套接字。用户继续在 miniterm 里操作串口；
 # agent 用 `monitor-ctl` 把按键/命令转发进同一串口（不抢 tty）。
 MONITOR_CTL_WAIT_MS = 3000
@@ -191,16 +193,16 @@ SIFLI_SDK: str | None = "/home/jinsc/SDK/SiFli/SDK/2.4"
 BOOT_BIN_NAMES = ("ftab.bin", "bootloader.bin")
 FS_ROOT_BIN_NAME = "fs_root.bin"
 FLASHER_ARGS_NAME = "flasher_args.json"
-FS_ROOT_BUILD_SCRIPT = "vendor/my_vendor/scripts/build_fs_root.sh"
-MKFS_DIR = "vendor/my_vendor/boards/sf32lb52/my_vendor/mkfs"
-FLASH_ARGS_LIB = "vendor/my_vendor/scripts/flash_args_lib.py"
+FS_ROOT_BUILD_SCRIPT = "scripts/build_fs_root.sh"
+MKFS_DIR = "boards/sf32lb52/my_vendor/mkfs"
+FLASH_ARGS_LIB = "scripts/flash_args_lib.py"
 
 # NAND boot 镜像目录（ftab.bin / bootloader.bin）；flash 从此处读取
-# 相对 openvela 根目录，或绝对路径
-BOOT_BIN_DIR = "vendor/my_vendor/boot_loader/bin"
+# 相对**本树根**，或绝对路径
+BOOT_BIN_DIR = "boot_loader/bin"
 
 # vendored bootloader 工程（scons 编译入口）
-BOOT_LOADER_DIR = "vendor/my_vendor/boot_loader"
+BOOT_LOADER_DIR = "boot_loader"
 
 # sftool 烧录：地址由 ptab.json 实时计算，清单见 sftool_param.json；
 # build 后写入 cmake_out/.../flasher_args.json（类似 ESP-IDF flasher_args）。
@@ -208,13 +210,13 @@ BOOT_LOADER_DIR = "vendor/my_vendor/boot_loader"
 # nuttx.bin 后处理：1KiB OVNX 头(版本/构建时间/整段长度) + payload + 4B CRC
 NUTTX_BIN_NAME = "nuttx.bin"
 NUTTX_FLASH_BIN_NAME = "nuttx.flash.bin"
-WRAP_NUTTX_SCRIPT = "vendor/my_vendor/scripts/wrap_nuttx_image.sh"
+WRAP_NUTTX_SCRIPT = "scripts/wrap_nuttx_image.sh"
 # build / flash 自动 wrap；二级 boot 校验 CRC 并 UART 打印构建日期/长度/CRC
 AUTO_WRAP_NUTTX = True
 
 # nuttx 编译成功后自动打印固件体积摘要（analyze_firmware_size.py --brief）
 AUTO_SIZE_SUMMARY = True
-SIZE_ANALYZE_SCRIPT = "vendor/my_vendor/scripts/analyze_firmware_size.py"
+SIZE_ANALYZE_SCRIPT = "scripts/analyze_firmware_size.py"
 
 # =============================================================================
 
@@ -361,6 +363,9 @@ def _monitor_early_entry(argv: list[str]) -> tuple[int, str] | None:
 
 SCRIPT_PATH = Path(__file__).resolve()
 SCRIPT_BASENAME = SCRIPT_PATH.name
+# 本树根（<vendor>）：本文件在 <vendor>/docs/tools/ 下 ⇒ 往上三级。
+# 所有相对路径（BOARD_CONFIG 等）都以它为基准 —— 这棵树改名 / 多份并存都不受影响。
+VENDOR_ROOT = SCRIPT_PATH.parent.parent.parent
 
 
 def find_openvela_root(start: Path | None = None) -> Path:
@@ -377,12 +382,12 @@ def find_openvela_root(start: Path | None = None) -> Path:
 
 def boot_config_path(root: Path) -> Path:
     """NAND boot 配置目录（ptab.json / sftool_param.json / boot.json）。"""
-    return _path_from_root(root, BOOT_CONFIG)
+    return _vpath(BOOT_CONFIG)
 
 
 def board_config_path(root: Path) -> Path:
     rel = BOARD_CONFIG.strip().rstrip("/")
-    path = (root / rel).resolve()
+    path = _vpath(rel)
     if not path.is_dir():
         raise RuntimeError(f"板级配置目录不存在: {path}")
     defconfig = path / "defconfig"
@@ -392,7 +397,7 @@ def board_config_path(root: Path) -> Path:
 
 
 def wrap_nuttx_script(root: Path) -> Path:
-    return _path_from_root(root, WRAP_NUTTX_SCRIPT)
+    return _vpath(WRAP_NUTTX_SCRIPT)
 
 
 def nuttx_raw_bin(out: Path) -> Path:
@@ -419,7 +424,7 @@ def nuttx_elf_path(root: Path) -> Path:
 def _import_elf_resolve():
     """加载 vendor/my_vendor/scripts/vela_elf_resolve.py。"""
     root = find_openvela_root(SCRIPT_PATH.parent)
-    path = root / ELF_RESOLVE_SCRIPT
+    path = _vpath(ELF_RESOLVE_SCRIPT)
     if not path.is_file():
         raise RuntimeError(f"未找到 ELF 解析脚本: {path}")
     spec = importlib.util.spec_from_file_location("vela_elf_resolve", path)
@@ -455,32 +460,31 @@ def make_panic_decoder(root: Path, elf: Path | None = None):
 
 def cmake_out_dir(root: Path) -> Path:
     """
-    与 build.sh 原生命名一致: cmake_out/<board_name>_<config_name>
-    板目录名为 my_vendor 时 → cmake_out/my_vendor_nsh/
+    cmake 输出目录: cmake_out/<本树目录名>_<config_name>，与 build.sh 同命名习惯。
+    本树在 vendor/my_vendor 时 → cmake_out/my_vendor_nsh/（与旧行为逐字一致）；
+    放在 vendor/vela_sifli 时 → cmake_out/vela_sifli_nsh/ ⇒ 多份树并存互不覆盖。
     """
     cfg = board_config_path(root)
-    config_name = cfg.name
-    board_name = cfg.parent.parent.name
-    return root / "cmake_out" / f"{board_name}_{config_name}"
+    return root / "cmake_out" / f"{VENDOR_ROOT.name}_{cfg.name}"
 
 
 def factory_out_dir(root: Path) -> Path:
-    """Factory 变体的 cmake 输出目录（cmake_out/my_vendor_nsh-factory/）。"""
-    cfg = (root / FACTORY_BOARD_CONFIG.strip().rstrip("/")).resolve()
-    return root / "cmake_out" / f"{cfg.parent.parent.name}_{cfg.name}"
+    """Factory 变体的 cmake 输出目录（cmake_out/<本树目录名>_nsh-factory/）。"""
+    cfg = _vpath(FACTORY_BOARD_CONFIG.strip().rstrip("/"))
+    return root / "cmake_out" / f"{VENDOR_ROOT.name}_{cfg.name}"
 
 
-def _path_from_root(root: Path, spec: str) -> Path:
-    """将相对 openvela 根目录或绝对路径 spec 解析为 Path。"""
+def _vpath(spec: str) -> Path:
+    """把 spec 解析为路径：绝对路径原样；相对路径相对**本树根**（VENDOR_ROOT）。"""
     p = Path(spec.strip())
     if p.is_absolute():
         return p.resolve()
-    return (root / p).resolve()
+    return (VENDOR_ROOT / p).resolve()
 
 
 def boot_bin_dir(root: Path) -> Path:
     """ftab.bin / bootloader.bin 安装目录。"""
-    return _path_from_root(root, BOOT_BIN_DIR)
+    return _vpath(BOOT_BIN_DIR)
 
 
 def boot_bin_missing(root: Path) -> list[str]:
@@ -576,8 +580,8 @@ def config_has_bicycle(root: Path) -> bool:
 
 def cmd_build_fs(root: Path) -> None:
     """打包 mkfs/{kv,lfs,fat}。仅 build-fs / build-all 调用。"""
-    build = _path_from_root(root, FS_ROOT_BUILD_SCRIPT)
-    mkfs = _path_from_root(root, MKFS_DIR)
+    build = _vpath(FS_ROOT_BUILD_SCRIPT)
+    mkfs = _vpath(MKFS_DIR)
     if not build.is_file():
         raise RuntimeError(f"未找到: {build}")
     if not mkfs.is_dir():
@@ -593,7 +597,7 @@ def cmd_build_fs(root: Path) -> None:
 
 def boot_loader_path(root: Path) -> Path:
     """vendored boot_loader 根目录。"""
-    return _path_from_root(root, BOOT_LOADER_DIR)
+    return _vpath(BOOT_LOADER_DIR)
 
 
 def resolve_sifli_sdk(root: Path) -> Path:
@@ -627,13 +631,20 @@ def resolve_sifli_sdk(root: Path) -> Path:
 
 
 def board_config_arg(root: Path) -> str:
-    """传给 build.sh 的路径参数（带尾部 /）。
+    """传给 build.sh 的路径参数（带尾部 /），**相对 openvela 根**。
 
-    build.sh 用 sed 去掉 defconfig 路径前 3 字符（期望 ``./vendor/...``），
-    勿改 nuttx/tools/build.sh；此处统一加 ``./`` 前缀。
+    ⚠ build.sh 的 setup_cmake_binary_dir 用 ``[ -d ${ROOTDIR}/${arg} ]`` 判存在、
+    再 basename 两跳取 board/config 名 ⇒ 参数必须是**相对根**的路径、形状为
+    ``./vendor/<本树目录名>/boards/<chip>/<product>/configs/<cfg>/``：
+    本树改名无所谓（仍相对根），但**不能改成绝对路径**（会掉进另一条 N 段解析分支）。
     """
-    rel = BOARD_CONFIG.strip().rstrip("/")
-    return f"./{rel}/"
+    cfg = board_config_path(root)
+    try:
+        rel = cfg.relative_to(root.resolve())
+    except ValueError:
+        # 本树不在该根下（少见）：退回绝对路径，调用方自行保证可用
+        return f"{cfg.as_posix().rstrip('/')}/"
+    return f"./{rel.as_posix().strip('/')}/"
 
 
 def board_config_name() -> str:
@@ -645,7 +656,7 @@ def print_firmware_size_summary(root: Path) -> None:
     """编译成功后打印简洁体积表（失败时静默跳过）。"""
     if not AUTO_SIZE_SUMMARY:
         return
-    script = _path_from_root(root, SIZE_ANALYZE_SCRIPT)
+    script = _vpath(SIZE_ANALYZE_SCRIPT)
     if not script.is_file():
         return
     out = cmake_out_dir(root)
@@ -807,7 +818,7 @@ def _resolve_flash_path(out: Path, spec: str) -> str:
 
 def _flash_args_lib(root: Path) -> types.ModuleType:
     """Load vendor/my_vendor/scripts/flash_args_lib.py."""
-    path = _path_from_root(root, FLASH_ARGS_LIB)
+    path = _vpath(FLASH_ARGS_LIB)
     if not path.is_file():
         raise RuntimeError(f"未找到: {path}")
     spec = importlib.util.spec_from_file_location("flash_args_lib", path)
@@ -1078,7 +1089,7 @@ def ensure_nuttx_flash_image(root: Path, out: Path) -> Path:
 
 def cmd_build_boot(root: Path, out: Path, jobs: int) -> None:
     """Build ftab.bin + bootloader.bin via boot_loader/build.sh."""
-    script = root / "vendor/my_vendor/boot_loader/build.sh"
+    script = _vpath("boot_loader/build.sh")
     if not script.is_file():
         raise RuntimeError(f"未找到 boot 构建脚本: {script}")
 
@@ -1155,7 +1166,7 @@ def sync_boot_storage_header(root: Path) -> None:
             " * Boot storage selection for the app (NuttX) side.\n"
             " *\n"
             " * AUTO-GENERATED from boot_loader/storage.conf by\n"
-            " * vendor/my_vendor/build_board.py before each `build`. Do NOT edit by\n"
+            " * <本固件树>/build_board.py before each `build`. Do NOT edit by\n"
             " * hand — change boot_loader/storage.conf (BOOT_STORAGE=nand|sd|emmc) and\n"
             " * rebuild.\n"
             " *\n"
@@ -1300,8 +1311,12 @@ def cmd_build_nuttx(root: Path, jobs: int) -> Path:
     sync_ptab_table(root)
     warn_boot_bin_missing(root, after_nuttx=True)
     warn_tab_completion(root)
+    # 显式 `-b <输出目录>`：build.sh 自己推的目录名是"路径第 5 段"（板内目录名 my_vendor），
+    # 本树改名后会与上面 cmake_out_dir() 算的（带本树目录名）**不一致** ⇒ 必须由这里钉死。
+    # 本树在 vendor/my_vendor 时两者本来就相同（cmake_out/my_vendor_nsh），行为不变。
     run(
-        ["./build.sh", board_config_arg(root), "--cmake", f"-j{jobs}"],
+        ["./build.sh", board_config_arg(root), "--cmake",
+         "-b", str(out), f"-j{jobs}"],
         cwd=root,
         env=_sanitized_build_env(),
     )
@@ -1464,14 +1479,16 @@ def cmd_flash_factory(
 
 def cmd_menuconfig(root: Path) -> None:
     run(
-        ["./build.sh", board_config_arg(root), "--cmake", "menuconfig"],
+        ["./build.sh", board_config_arg(root), "--cmake",
+         "-b", str(cmake_out_dir(root)), "menuconfig"],
         cwd=root,
     )
 
 
 def cmd_savedefconfig(root: Path) -> None:
     run(
-        ["./build.sh", board_config_arg(root), "--cmake", "savedefconfig"],
+        ["./build.sh", board_config_arg(root), "--cmake",
+         "-b", str(cmake_out_dir(root)), "savedefconfig"],
         cwd=root,
     )
 
@@ -5168,9 +5185,10 @@ def cmd_clean(root: Path) -> None:
 
 
 def cmd_distclean(root: Path) -> None:
-    """通过 build.sh 删除 CMake 输出目录。"""
+    """通过 build.sh 删除 CMake 输出目录（用 -b 钉死目录，别删到别的树的）。"""
     run(
-        ["./build.sh", board_config_arg(root), "--cmake", "distclean"],
+        ["./build.sh", board_config_arg(root), "--cmake",
+         "-b", str(cmake_out_dir(root)), "distclean"],
         cwd=root,
     )
 
@@ -5420,7 +5438,7 @@ def build_parser() -> argparse.ArgumentParser:
   PORT         = {PORT or '(自动检测)'}
   MONITOR_BAUD = {MONITOR_BAUD}
   FLASH        = flasher_args.json (ptab.json 地址 + sftool_param 清单)
-  WRAP         = vendor/my_vendor/scripts/wrap_nuttx_image.sh
+  WRAP         = <本固件树>/scripts/wrap_nuttx_image.sh
 
 示例:
   %(prog)s menuconfig
@@ -5518,7 +5536,7 @@ NSH Tab 补全（需已编入固件）:
         dest="sd_image",
         default=None,
         metavar="FILE",
-        help="burn-sd 镜像文件（默认 vendor/my_vendor/boot_loader/bin/my_vendor_sd.img）",
+        help="burn-sd 镜像文件（默认 <本固件树>/boot_loader/bin/my_vendor_sd.img）",
     )
     parser.add_argument(
         "--yes",

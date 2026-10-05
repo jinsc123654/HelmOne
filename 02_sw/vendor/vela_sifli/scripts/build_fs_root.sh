@@ -17,7 +17,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-MYV="${ROOT}/vendor/my_vendor"
+# 本固件树（可叫任意名字）：本脚本在 <vendor>/scripts/ 下 ⇒ 上一级就是它
+MYV="$(cd "$(dirname "$0")/.." && pwd)"
 STAGING="${1:-${MYV}/boards/sf32lb52/my_vendor/mkfs}"
 BIN_DIR="${MYV}/boot_loader/bin"
 LFS_VER="v2.5.1"
@@ -34,7 +35,7 @@ fi
 BUILD_FAT="${BUILD_FAT:-1}"
 
 eval "$(
-  ROOT="${ROOT}" PYTHONPATH="${SCRIPTS}${PYTHONPATH:+:${PYTHONPATH}}" python3 - <<'PY'
+  ROOT="${ROOT}" MYV="${MYV}" PYTHONPATH="${SCRIPTS}${PYTHONPATH:+:${PYTHONPATH}}" python3 - <<'PY'
 import os
 import sys
 from pathlib import Path
@@ -42,7 +43,7 @@ import flash_args_lib as fal
 import json
 
 root = Path(os.environ["ROOT"])
-cfg = root / "vendor/my_vendor/boot_loader/config/nsh"
+cfg = Path(os.environ["MYV"]) / "boot_loader/config/nsh"
 storage = fal.boot_storage_value(cfg) or "nand"
 ptab = fal.resolve_ptab_path(cfg, storage=storage)
 addrs = fal.load_ptab_img_addresses(ptab)

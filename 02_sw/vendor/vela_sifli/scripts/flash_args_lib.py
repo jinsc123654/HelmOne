@@ -34,9 +34,10 @@ BOOT_BIN_NAMES = ("ftab.bin", "bootloader.bin")
 VOLUME_BIN_NAMES = (FS_ROOT_BIN_NAME, KV_ROOT_BIN_NAME, FAT_ROOT_BIN_NAME)
 NUTTX_BIN_NAME = "nuttx.bin"
 NUTTX_FLASH_BIN_NAME = "nuttx.flash.bin"
-DEFAULT_FACTORY_BOARD_CONFIG = (
-    "vendor/my_vendor/boards/sf32lb52/my_vendor/configs/nsh-factory"
-)
+# 本树根（<vendor>）：本文件在 <vendor>/scripts/ 下 ⇒ 往上两级。
+# 下面所有相对 spec 都相对它解析 —— 这棵树在 vendor/ 下叫什么都行。
+VENDOR_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_FACTORY_BOARD_CONFIG = "boards/sf32lb52/my_vendor/configs/nsh-factory"
 
 # sftool_param path basename -> ptab.json "img" key
 _PATH_PTAB_IMG: dict[str, str] = {
@@ -141,19 +142,23 @@ def factory_out_dir(
     root: Path,
     factory_board_config: str = DEFAULT_FACTORY_BOARD_CONFIG,
 ) -> Path:
-    """Factory variant cmake dir: cmake_out/my_vendor_nsh-factory/."""
-    cfg = (root / factory_board_config.strip().rstrip("/")).resolve()
-    return root / "cmake_out" / f"{cfg.parent.parent.name}_{cfg.name}"
+    """Factory variant cmake dir: cmake_out/<本树目录名>_nsh-factory/."""
+    cfg = _vpath(factory_board_config)
+    return root / "cmake_out" / f"{VENDOR_ROOT.name}_{cfg.name}"
+
+
+def _vpath(spec: str) -> Path:
+    """相对 spec → 相对**本树根**解析；绝对路径原样。"""
+    p = Path(spec.strip())
+    return p.resolve() if p.is_absolute() else (VENDOR_ROOT / p).resolve()
 
 
 def boot_config_dir(root: Path, boot_config: str) -> Path:
-    p = Path(boot_config.strip())
-    return p if p.is_absolute() else (root / p).resolve()
+    return _vpath(boot_config)
 
 
 def boot_bin_dir(root: Path, boot_bin_dir_spec: str) -> Path:
-    p = Path(boot_bin_dir_spec.strip())
-    return p if p.is_absolute() else (root / p).resolve()
+    return _vpath(boot_bin_dir_spec)
 
 
 def load_ptab_img_addresses(ptab_path: Path) -> dict[str, int]:

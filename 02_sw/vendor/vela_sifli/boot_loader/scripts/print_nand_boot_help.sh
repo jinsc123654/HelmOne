@@ -4,10 +4,13 @@
 print_nand_boot_help() {
   local mode="${1:-full}"
   local openvela_root="${2:?openvela root required}"
-  local boot_bin_dir="${3:-${openvela_root}/vendor/my_vendor/boot_loader/bin}"
+  # 本固件树（可叫任意名字）：本脚本在 <vendor>/boot_loader/scripts/ 下 ⇒ 上两级
+  local vendor_root
+  vendor_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  local boot_bin_dir="${3:-${vendor_root}/boot_loader/bin}"
   local extra="${4:-}"
 
-  local nuttx_out_dir="${openvela_root}/cmake_out/my_vendor_nsh"
+  local nuttx_out_dir="${openvela_root}/cmake_out/$(basename "${vendor_root}")_nsh"
   local boot_src=""
   if [[ "${mode}" == "bootloader" ]]; then
     boot_src="${extra}"
@@ -101,7 +104,7 @@ build-boot 已写入 ${boot_bin_dir}/:
 
 单独 wrap:
   ./vela_my_vendor_tools.py wrap
-  vendor/my_vendor/scripts/wrap_nuttx_image.sh ${nuttx_out_dir}
+  <本固件树>/scripts/wrap_nuttx_image.sh ${nuttx_out_dir}
 
 SDK 路径: vela_my_vendor_tools.py 顶部 SIFLI_SDK
 ================================================================================

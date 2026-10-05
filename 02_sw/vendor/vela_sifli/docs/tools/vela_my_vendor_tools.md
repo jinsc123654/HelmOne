@@ -16,6 +16,11 @@ SF32LB52 **my_vendor** 板级的构建、烧录与串口监视辅助脚本，用
 | 分区地址 | `vendor/my_vendor/boot_loader/config/nsh/ptab.json`（实时计算） |
 | 烧录快照 | `cmake_out/my_vendor_nsh/flasher_args.json`（build 后生成，类似 IDF） |
 
+> **本工具链不要求这棵树叫 `my_vendor`**：下面所有路径常量都以"本树根"（由脚本自身位置推导）
+> 为基准，本树放在 `<openvela>/vendor/<任意名字>/` 下都能用**它自带的** `build_board.py`
+> 编译（`cmake_out/<本树目录名>_nsh/`，与别的 vendor 树互不覆盖）。
+> 本文里的 `vendor/my_vendor/...` 示例是**主树**的规范写法，照抄到别的树名时把这一段替换掉即可。
+
 相关文档：[board_guide.md](../board_guide.md)、[build_guide.md](../build_guide.md)、[boot_2sfbl.md](../boot_2sfbl.md)、[factory_firmware.md](../factory_firmware.md)、[sd_partition.md](../sd_partition.md)、[nuttx_boot_flow.md](../nuttx_boot_flow.md)、[nuttx_ovnx_image.md](../../scripts/nuttx_ovnx_image.md)。
 
 ---
